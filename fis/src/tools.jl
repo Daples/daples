@@ -67,9 +67,10 @@ function plotPL(x, y,
     end
 end
 
-function plotMFs(MFs, dom, labels, outfile)
+# Plot array of MFs
+function plotMFs(MFs, dom, labels, outfile; n=1000)
     colors = [:blue, :black, :orange, :red, :green]
-    t = collect(dom[1]:(dom[2] - dom[1])/1000:dom[2])
+    t = collect(dom[1]:(dom[2] - dom[1])/n:dom[2])
     i = 1
     for MF in MFs
         if i == 1

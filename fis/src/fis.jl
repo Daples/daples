@@ -38,8 +38,10 @@ plotMFs(in_xs, [0 1],
 ΔuMF_low = SigmoidMF(-a, -ω/3, -ω);
 ΔuMF_con = GaussianMF(0, 0.01);
 ΔuMF_high = SigmoidMF(a, ω/3, ω);
-out_controllers = [ΔuMF_low, ΔuMF_con, ΔuMF_high]
-plotMFs(out_controllers, [-ω ω], ["Low", "Medium", "High"], cwd*"outMFs.pdf")
+out_controllers = [ΔuMF_low, ΔuMF_con, ΔuMF_high];
+plotMFs(out_controllers, [-ω ω],
+    ["Low", "Medium", "High"], cwd*"outMFs.pdf"
+)
 
 ## Inputs
 in_u = Dict()
@@ -62,6 +64,17 @@ in_x["controlled"] = xMF_cont
 in_x["normal"] = xMF_norm
 in_x["high"] = xMF_high
 
-inputs = [in_u, in_v, in_Δx]
+inputs = [in_u, in_v, in_Δx, in_x]
 
 ## Outputs
+out_Δu = Dict()
+out_Δu["low"] = outMF_low
+out_Δu["medium"] = outMF_med
+out_Δu["high"] = outMF_high
+
+out_Δv = Dict()
+out_Δv["low"] = outMF_low
+out_Δv["medium"] = outMF_med
+out_Δv["high"] = outMF_high
+
+outputs = [out_Δu, out_Δv]
