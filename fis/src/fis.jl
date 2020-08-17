@@ -35,12 +35,12 @@ plotMFs(in_xs, [0 1],
 
 # Output controllers
 # Δu(t)
-ΔuMF_low = SigmoidMF(-a, -ω/3, -ω);
+ΔuMF_dec = SigmoidMF(-a, -ω/3, -ω);
 ΔuMF_con = GaussianMF(0, 0.01);
-ΔuMF_high = SigmoidMF(a, ω/3, ω);
-out_controllers = [ΔuMF_low, ΔuMF_con, ΔuMF_high];
+ΔuMF_inc = SigmoidMF(a, ω/3, ω);
+out_controllers = [ΔuMF_dec, ΔuMF_con, ΔuMF_inc];
 plotMFs(out_controllers, [-ω ω],
-    ["Low", "Medium", "High"], cwd*"outMFs.pdf"
+    ["Decrease", "Constant", "Increase"], cwd*"outMFs.pdf"
 )
 
 ## Inputs
@@ -60,21 +60,21 @@ in_Δx["constant"] = ΔxMF_con
 in_Δx["increasing"] = ΔxMF_inc
 
 in_x = Dict()
-in_x["controlled"] = xMF_cont
-in_x["normal"] = xMF_norm
+in_x["controlled"] = xMF_controlled
+in_x["normal"] = xMF_normal
 in_x["high"] = xMF_high
 
 inputs = [in_u, in_v, in_Δx, in_x]
 
 ## Outputs
 out_Δu = Dict()
-out_Δu["low"] = outMF_low
-out_Δu["medium"] = outMF_med
-out_Δu["high"] = outMF_high
+out_Δu["decrease"] = ΔuMF_dec
+out_Δu["constant"] = ΔuMF_con
+out_Δu["increase"] = ΔuMF_inc
 
 out_Δv = Dict()
-out_Δv["low"] = outMF_low
-out_Δv["medium"] = outMF_med
-out_Δv["high"] = outMF_high
+out_Δv["decrease"] = ΔuMF_dec
+out_Δv["constant"] = ΔuMF_con
+out_Δv["increase"] = ΔuMF_incx
 
 outputs = [out_Δu, out_Δv]

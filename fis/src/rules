@@ -1,0 +1,82 @@
+u,   v,   Δx,         x
+low, low, decreasing, controlled => nothing
+low, low, decreasing, normal => nothing
+low, low, decreasing, high => s
+low, low, constant, controlled
+low, low, constant, normal
+low, low, constant, high
+low, low, increasing, controlled
+low, low, increasing, normal
+low, low, increasing, high
+low, medium, decreasing, controlled
+low, medium, decreasing, normal
+low, medium, decreasing, high
+low, medium, constant, controlled
+low, medium, constant, normal
+low, medium, constant, high
+low, medium, increasing, controlled
+low, medium, increasing, normal
+low, medium, increasing, high
+low, high, decreasing, controlled
+low, high, decreasing, normal
+low, high, decreasing, high
+low, high, constant, controlled
+low, high, constant, normal
+low, high, constant, high
+low, high, increasing, controlled
+low, high, increasing, normal
+low, high, increasing, high
+medium, low, decreasing, controlled
+medium, low, decreasing, normal
+medium, low, decreasing, high
+medium, low, constant, controlled
+medium, low, constant, normal
+medium, low, constant, high
+medium, low, increasing, controlled
+medium, low, increasing, normal
+medium, low, increasing, high
+medium, medium, decreasing, controlled
+medium, medium, decreasing, normal
+medium, medium, decreasing, high
+medium, medium, constant, controlled
+medium, medium, constant, normal
+medium, medium, constant, high
+medium, medium, increasing, controlled
+medium, medium, increasing, normal
+medium, medium, increasing, high
+medium, high, decreasing, controlled
+medium, high, decreasing, normal
+medium, high, decreasing, high
+medium, high, constant, controlled
+medium, high, constant, normal
+medium, high, constant, high
+medium, high, increasing, controlled
+medium, high, increasing, normal
+medium, high, increasing, high
+high, low, decreasing, controlled
+high, low, decreasing, normal
+high, low, decreasing, high
+high, low, constant, controlled
+high, low, constant, normal
+high, low, constant, high
+high, low, increasing, controlled
+high, low, increasing, normal
+high, low, increasing, high
+high, medium, decreasing, controlled
+high, medium, decreasing, normal
+high, medium, decreasing, high
+high, medium, constant, controlled
+high, medium, constant, normal
+high, medium, constant, high
+high, medium, increasing, controlled
+high, medium, increasing, normal
+high, medium, increasing, high
+high, high, decreasing, controlled
+high, high, decreasing, normal
+high, high, decreasing, high => high, low
+high, high, constant, controlled => low, medium
+high, high, constant, normal => medium, medium
+high, high, constant, high => nothing
+high, high, increasing, controlled => nothing
+high, high, increasing, normal => nothing
+high, high, increasing, high => nothing

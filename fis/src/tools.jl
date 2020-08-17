@@ -90,3 +90,24 @@ function plotMFs(MFs, dom, labels, outfile; n=1000)
     savefig(outfile)
     return fig
 end
+
+# Print combinations
+function printCombinations(outfile)
+    us = ["low" "medium" "high"];
+    vs = ["low" "medium" "high"];
+    Δxs = ["decreasing" "constant" "increasing"];
+    xs = ["controlled" "normal" "high"];
+
+    open(outfile, "w") do io
+        write(io)
+        for u in us
+            for v in vs
+                for Δx in Δxs
+                    for x in xs
+                        write(io, "$u, $v, $Δx, $x\n")
+                    end
+                end
+            end
+        end
+    end
+end
