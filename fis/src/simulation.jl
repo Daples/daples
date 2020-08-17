@@ -23,30 +23,30 @@ function rk4(f, x0, h, T)
 end
 
 ## Parameters
-k = 10^-5
-k1 = 1
-k2 = 0.05
-α = 0.75
-k3 = 0.05
-k4 = 0.01
-β = 0.1
-k5 = 0.1
+k = 10^-5;
+k1 = 1;
+k2 = 0.05;
+α = 0.75;
+k3 = 0.05;
+k4 = 0.01;
+β = 0.1;
+k5 = 0.1;
 
 ## System
-x0 = [0.6]
-T = 2500
-h = 0.1
+x0 = [0.6];
+T = 2500;
+h = 0.1;
 
-u(t) = 1
-v(t) = 0
+u(t) = 1;
+v(t) = 0;
 
-f(t, x) = k .+ (1 .+ k1*v(t))*k2*(x.^α) .- k3*x .- k4*log(1 .+ u(t))*(x.^β) .- k5*log(1 .+ v(t))*x
+f(t, x) = k .+ (1 .+ k1*v(t))*k2*(x.^α) .- k3*x .- k4*log(1 .+ u(t))*(x.^β) .- k5*log(1 .+ v(t))*x;
 
 # Simulation
-ts, xs = rk4(f, x0, h, T)
+ts, xs = rk4(f, x0, h, T);
 
 # Plot
-plot(ts, transpose(real.(xs)), label = "Real(x(t))", color = :black)
-plot!(ts, transpose(imag.(xs)), label = "Imag(x(t))", color = :red)
+plot(ts, transpose(real.(xs)), label = "Real(x(t))", color = :black);
+plot!(ts, transpose(imag.(xs)), label = "Imag(x(t))", color = :red);
 plot!(xlabel = "t", ylabel = "x(t)")
 savefig("simulation.pdf")

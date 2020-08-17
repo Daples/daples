@@ -25,15 +25,16 @@ end
 
 # Better plots
 function plotPL(x, y,
-    add = false;
+    add = nothing;
     label = "",
-    color = :black, lw = 2,
+    color = :black,
+    lw = 2,
     legend = :right,
     fontsize = 12,
     font = "times"
 )
-    if ~add
-        plot(x, y,
+    if isnothing(add)
+        global fig = plot(x, y,
             label = label,
             color = color,
             lw = lw,
@@ -46,7 +47,7 @@ function plotPL(x, y,
             legendfontsize = fontsize
         )
     else
-        plot!(x, y,
+        plot!(add, x, y,
             label = label,
             color = color,
             lw = lw,
@@ -59,6 +60,11 @@ function plotPL(x, y,
             legendfontsize = fontsize
         )
     end
+    if isnothing(add)
+        return fig
+    else
+        return add
+    end
 end
 
 function plotMFs(MFs, dom, labels, outfile)
@@ -67,13 +73,13 @@ function plotMFs(MFs, dom, labels, outfile)
     i = 1
     for MF in MFs
         if i == 1
-            plotPL(t, map(x -> MF.eval(x), t),
+            global fig = plotPL(t, map(x -> MF.eval(x), t),
                 label = labels[i],
                 color = colors[i]
             )
         else
-            plotPL(t, map(x -> MF.eval(x), t),
-                true,
+            fig = plotPL(t, map(x -> MF.eval(x), t),
+                fig,
                 label = labels[i],
                 color = colors[i]
             )
@@ -81,4 +87,5 @@ function plotMFs(MFs, dom, labels, outfile)
         i += 1
     end
     savefig(outfile)
+    return fig
 end
