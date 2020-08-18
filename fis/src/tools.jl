@@ -23,6 +23,24 @@ function rk4(f, x0, h, T)
     return ts, xs
 end
 
+# Standard Euler's method
+function euler(f, x0, h, T)
+    nvars = size(x0, 1)
+    arr_size = Int(T/h)
+    xs = zeros(ComplexF64, nvars, arr_size)
+    xs[:,1] = x0
+    t = 0
+    ts = zeros(1)
+    for i in 2:arr_size
+        push!(ts, t)
+        x_aux = xs[:, i-1]
+        k1 = f(t, x_aux)
+        xs[:, i] = x_aux + h*f(t, x_aux)
+        t += h
+    end
+    return ts, xs
+end
+
 # Better plots
 function plotPL(x, y,
     add = nothing;
@@ -92,22 +110,62 @@ function plotMFs(MFs, dom, labels, outfile; n=1000)
 end
 
 # Print combinations
-function printCombinations(outfile)
+function print_combinations(outfile)
     us = ["low" "medium" "high"];
     vs = ["low" "medium" "high"];
-    Δxs = ["decreasing" "constant" "increasing"];
-    xs = ["controlled" "normal" "high"];
+    xs = ["null" "controlled" "high"];
 
     open(outfile, "w") do io
-        write(io)
         for u in us
             for v in vs
-                for Δx in Δxs
-                    for x in xs
-                        write(io, "$u, $v, $Δx, $x\n")
-                    end
+                for x in xs
+                    write(io, "$u and $v and $x then \n")
                 end
             end
         end
     end
+end
+
+# Iterate a single step of euler's method for a given u and v
+function iter_euler(x_prev, t, u, v; h=0.01)
+    k = 10^-5;
+    k1 = 1;
+    k2 = 0.05;
+    α = 0.75;
+    k3 = 0.05;
+    k4 = 0.01;
+    β = 0.1;
+    k5 = 0.1;
+    f(t, x) = k .+ (1 .+ k1*v)*k2*(x.^α) .- k3*x .- k4*log(1 .+ u)*(x.^β) .- k5*log(1 .+ v)*x
+    x_new = x_prev + h*f(t, x_prev)
+    t += h
+    return t, x_new
+end
+
+function simulate_FISCS(x0, u0, v0, T;
+    fis_u = nothing,
+    fis_v = nothing,
+    h = 0.01
+)
+    arr_size = Int(T/h)
+    xs = zeros(ComplexF64, arr_size)
+    ts = zeros(Float64, arr_size)
+    us = zeros(Float64, arr_size)
+    vs = zeros(Float64, arr_size)
+    xs[1] = x0
+    us[1] = u0
+    vs[1] = v0
+    t = 0
+    t, xs[2] = iter_euler(x0, t, u0, v0, h = h)
+    for i in 2:arr_size-1
+        ts[i] = t
+        # Evaluate FIS for new controls
+        in_vals = [us[i-1], vs[i-1], real(xs[i])]
+        us[i] = us[i-1] + eval_fis(fis_u, in_vals)
+        vs[i] = vs[i-1] + eval_fis(fis_v, in_vals)
+        # Find next point
+        t, xs[i+1] = iter_euler(xs[i], t, us[i], vs[i])
+    end
+    ts[end] = t
+    return ts, xs, us, vs
 end

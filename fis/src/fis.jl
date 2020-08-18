@@ -12,69 +12,82 @@ contMF_high = SigmoidMF(10, 0.6, 1);
 in_controllers = [contMF_low, contMF_med, contMF_high];
 plotMFs(in_controllers, [0 1], ["Low", "Medium", "High"], cwd*"contMFs.pdf")
 
-# Δx(t) = x(t) - x(t-h)
-ω = 0.05;
-t = collect(-ω:0.001:ω);
-a = 150;
-ΔxMF_dec = SigmoidMF(-a, -ω/3, -ω);
-ΔxMF_con = GaussianMF(0, 0.01);
-ΔxMF_inc = SigmoidMF(a, ω/3, ω);
-in_Δxs = [ΔxMF_dec, ΔxMF_con, ΔxMF_inc];
-plotMFs(in_Δxs, [-ω ω],
-    ["Decreasing", "Constant", "Increasing"], cwd*"deltaStateMFs.pdf"
-)
-
 # x(t)
-xMF_controlled = TrapezoidalMF(0, 0, 0.1, 0.3)
-xMF_normal = BellMF(0.2, 4, 0.4)
-xMF_high = TrapezoidalMF(0.5, 0.7, 1, 1)
-in_xs = [xMF_controlled, xMF_normal, xMF_high]
+xMF_null = TrapezoidalMF(0, 0, 0.1, 0.2);
+xMF_controlled = BellMF(0.15, 5, 0.3);
+xMF_high = TrapezoidalMF(0.4, 0.5, 1, 1);
+in_xs = [xMF_null, xMF_controlled, xMF_high];
 plotMFs(in_xs, [0 1],
-    ["Controlled", "Normal", "High"], cwd*"stateMFs.pdf"
+    ["Null", "Controlled", "High"], cwd*"stateMFs.pdf"
 )
 
 # Output controllers
-# Δu(t)
-ΔuMF_dec = SigmoidMF(-a, -ω/3, -ω);
-ΔuMF_con = GaussianMF(0, 0.01);
-ΔuMF_inc = SigmoidMF(a, ω/3, ω);
-out_controllers = [ΔuMF_dec, ΔuMF_con, ΔuMF_inc];
+# Δs
+ω = 0.05;
+a = 150;
+ΔMF_dec = SigmoidMF(-a, -ω/3, -ω);
+ΔMF_con = GaussianMF(0, 0.01);
+ΔMF_inc = SigmoidMF(a, ω/3, ω);
+out_controllers = [ΔMF_dec, ΔMF_con, ΔMF_inc];
 plotMFs(out_controllers, [-ω ω],
     ["Decrease", "Constant", "Increase"], cwd*"outMFs.pdf"
 )
 
 ## Inputs
-in_u = Dict()
-in_u["low"] = contMF_low
-in_u["medium"] = contMF_med
-in_u["high"] = contMF_high
+in_u = Dict();
+in_u["low"] = contMF_low;
+in_u["medium"] = contMF_med;
+in_u["high"] = contMF_high;
 
-in_v = Dict()
-in_v["low"] = contMF_low
-in_v["medium"] = contMF_med
-in_v["high"] = contMF_high
+in_v = Dict();
+in_v["low"] = contMF_low;
+in_v["medium"] = contMF_med;
+in_v["high"] = contMF_high;
 
-in_Δx = Dict()
-in_Δx["decreasing"] = ΔxMF_dec
-in_Δx["constant"] = ΔxMF_con
-in_Δx["increasing"] = ΔxMF_inc
+in_x = Dict();
+in_x["null"] = xMF_null;
+in_x["controlled"] = xMF_controlled;
+in_x["high"] = xMF_high;
 
-in_x = Dict()
-in_x["controlled"] = xMF_controlled
-in_x["normal"] = xMF_normal
-in_x["high"] = xMF_high
-
-inputs = [in_u, in_v, in_Δx, in_x]
+inputs = [in_u, in_v, in_x];
 
 ## Outputs
-out_Δu = Dict()
-out_Δu["decrease"] = ΔuMF_dec
-out_Δu["constant"] = ΔuMF_con
-out_Δu["increase"] = ΔuMF_inc
+out_Δu = Dict();
+out_Δu["decrease"] = ΔMF_dec;
+out_Δu["constant"] = ΔMF_con;
+out_Δu["increase"] = ΔMF_inc;
 
-out_Δv = Dict()
-out_Δv["decrease"] = ΔuMF_dec
-out_Δv["constant"] = ΔuMF_con
-out_Δv["increase"] = ΔuMF_incx
+out_Δv = Dict();
+out_Δv["decrease"] = ΔMF_dec;
+out_Δv["constant"] = ΔMF_con;
+out_Δv["increase"] = ΔMF_inc;
 
-outputs = [out_Δu, out_Δv]
+## Rules
+rules_file = open("rules", "r") do io
+    read(io, String)
+end;
+lines = split(rules_file, "\n")[1:end-1];
+rules_u = [];
+rules_v = [];
+norm = "MIN";
+for line in lines
+    ant = split(line, " then ")[1]
+    con = split(line, " then ")[2]
+    push!(rules_u, Rule(split(ant, " and "), split(con, " and ")[1], norm))
+    push!(rules_v, Rule(split(ant, " and "), split(con, " and ")[2], norm))
+end
+
+fis_u = FISMamdani(inputs, out_Δu, rules_u);
+fis_v = FISMamdani(inputs, out_Δv, rules_v);
+
+## Control System
+x0 = 0.3;
+u0 = 0.5;
+v0 = 1;
+T = 100;
+ts, xs, us, vs = simulate_FISCS(x0, u0, v0, T, fis_u = fis_u, fis_v = fis_v);
+
+# Plots
+fig = plotPL(ts, real.(xs), label = L"$x(t)$")
+plotPL(ts, us, fig, label = L"$u(t)$", color = :red)
+plotPL(ts, vs, fig, label = L"$v(t)$", color = :orange)
