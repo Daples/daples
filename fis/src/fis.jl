@@ -1,7 +1,8 @@
-using Fuzzy
 using Plots
+using Fuzzy
 
 include("tools.jl");
+
 cwd = "C:\\Users\\Daples\\git\\daples\\fis\\src\\figs\\";
 
 ## Membership functions
@@ -81,13 +82,19 @@ fis_u = FISMamdani(inputs, out_Δu, rules_u);
 fis_v = FISMamdani(inputs, out_Δv, rules_v);
 
 ## Control System
-x0 = 0.3;
-u0 = 0.5;
-v0 = 1;
+x0 = 1;
+u0 = 0;
+v0 = 0;
 T = 100;
-ts, xs, us, vs = simulate_FISCS(x0, u0, v0, T, fis_u = fis_u, fis_v = fis_v);
+ts, xs, us, vs = simulate_FISCS(x0, u0, v0, T,
+    fis_u = fis_u,
+    fis_v = fis_v,
+    defuzz = "WTAV"
+);
 
 # Plots
 fig = plotPL(ts, real.(xs), label = L"$x(t)$")
 plotPL(ts, us, fig, label = L"$u(t)$", color = :red)
-plotPL(ts, vs, fig, label = L"$v(t)$", color = :orange)
+plotPL(ts, vs, fig, label = L"$v(t)$", color = :orange,
+    legend = :topright, xlabel = L"$t$")
+savefig(cwd*"FISCS-$x0-$u0-$v0.pdf")

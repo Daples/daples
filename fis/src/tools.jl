@@ -49,7 +49,9 @@ function plotPL(x, y,
     lw = 2,
     legend = :right,
     fontsize = 12,
-    font = "times"
+    font = "times",
+    xlabel = "",
+    ylabel = ""
 )
     if isnothing(add)
         global fig = plot(x, y,
@@ -57,8 +59,8 @@ function plotPL(x, y,
             color = color,
             lw = lw,
             legend = legend,
-            xlabel = "",
-            ylabel = "",
+            xlabel = xlabel,
+            ylabel = ylabel,
             titlefont = (fontsize, font),
             xtickfont = (fontsize, font),
             ytickfont = (fontsize, font),
@@ -70,8 +72,8 @@ function plotPL(x, y,
             color = color,
             lw = lw,
             legend = legend,
-            xlabel = "",
-            ylabel = "",
+            xlabel = xlabel,
+            ylabel = ylabel,
             titlefont = (fontsize, font),
             xtickfont = (fontsize, font),
             ytickfont = (fontsize, font),
@@ -145,9 +147,10 @@ end
 function simulate_FISCS(x0, u0, v0, T;
     fis_u = nothing,
     fis_v = nothing,
-    h = 0.01
+    h = 0.01,
+    defuzz = "WTAV"
 )
-    arr_size = Int(T/h)
+    arr_size = Int64(T/h)
     xs = zeros(ComplexF64, arr_size)
     ts = zeros(Float64, arr_size)
     us = zeros(Float64, arr_size)
@@ -161,8 +164,8 @@ function simulate_FISCS(x0, u0, v0, T;
         ts[i] = t
         # Evaluate FIS for new controls
         in_vals = [us[i-1], vs[i-1], real(xs[i])]
-        us[i] = us[i-1] + eval_fis(fis_u, in_vals)
-        vs[i] = vs[i-1] + eval_fis(fis_v, in_vals)
+        us[i] = us[i-1] + eval_fis(fis_u, in_vals, defuzz)
+        vs[i] = vs[i-1] + eval_fis(fis_v, in_vals, defuzz)
         # Find next point
         t, xs[i+1] = iter_euler(xs[i], t, us[i], vs[i])
     end
