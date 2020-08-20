@@ -4,7 +4,7 @@ low and low and high then increase and increase
 low and medium and null then constant and decrease
 low and medium and controlled then increase and constant
 low and medium and high then increase and constant
-low and high and null then constant and decrease 
+low and high and null then constant and decrease
 low and high and controlled then increase and decrease
 low and high and high then increase and decrease
 medium and low and null then constant and constant
