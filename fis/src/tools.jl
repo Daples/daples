@@ -164,8 +164,8 @@ function simulate_FISCS(x0, u0, v0, T;
         ts[i] = t
         # Evaluate FIS for new controls
         in_vals = [us[i-1], vs[i-1], real(xs[i])]
-        us[i] = us[i-1] + eval_fis(fis_u, in_vals, defuzz)
-        vs[i] = vs[i-1] + eval_fis(fis_v, in_vals, defuzz)
+        us[i] = max(us[i-1] + eval_fis(fis_u, in_vals, defuzz), 0)
+        vs[i] = max(vs[i-1] + eval_fis(fis_v, in_vals, defuzz), 0)
         # Find next point
         t, xs[i+1] = iter_euler(xs[i], t, us[i], vs[i])
     end
