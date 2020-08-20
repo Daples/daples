@@ -18,16 +18,14 @@ xMF_null = TrapezoidalMF(0, 0, 0.1, 0.2);
 xMF_controlled = BellMF(0.15, 5, 0.3);
 xMF_high = TrapezoidalMF(0.4, 0.5, 1, 1);
 in_xs = [xMF_null, xMF_controlled, xMF_high];
-plotMFs(in_xs, [0 1],
-    ["Null", "Controlled", "High"], cwd*"stateMFs.pdf"
-)
+plotMFs(in_xs, [0 1], ["Null", "Controlled", "High"], cwd*"stateMFs.pdf")
 
 # Output controllers
 # Δs
-ω = 0.05;
-a = 150;
+ω = 0.005;
+a = 10/ω;
 ΔMF_dec = SigmoidMF(-a, -ω/3, -ω);
-ΔMF_con = GaussianMF(0, 0.01);
+ΔMF_con = GaussianMF(0, ω/25);
 ΔMF_inc = SigmoidMF(a, ω/3, ω);
 out_controllers = [ΔMF_dec, ΔMF_con, ΔMF_inc];
 plotMFs(out_controllers, [-ω ω],
@@ -68,6 +66,10 @@ rules_file = open("rules", "r") do io
     read(io, String)
 end;
 lines = split(rules_file, "\n")[1:end-1];
+for i in 1:length(lines)
+    lines[i] = replace(lines[i], "\r" => "")
+end
+
 rules_u = [];
 rules_v = [];
 norm = "MIN";
@@ -78,18 +80,19 @@ for line in lines
     push!(rules_v, Rule(split(ant, " and "), split(con, " and ")[2], norm))
 end
 
-fis_u = FISMamdani(inputs, out_Δu, rules_u);
-fis_v = FISMamdani(inputs, out_Δv, rules_v);
+## FIS
+fis_u = FISMamdani(inputs, out_Δu, rules_u, (-ω, ω));
+fis_v = FISMamdani(inputs, out_Δv, rules_v, (-ω, ω));
 
-## Control System
+## FISCS
 x0 = 1;
-u0 = 0;
-v0 = 0;
-T = 100;
+u0 = 1;
+v0 = 1;
+T = 150;
 ts, xs, us, vs = simulate_FISCS(x0, u0, v0, T,
     fis_u = fis_u,
     fis_v = fis_v,
-    defuzz = "WTAV"
+    defuzz = "COG"
 );
 
 # Plots
