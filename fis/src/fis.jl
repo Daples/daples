@@ -1,7 +1,7 @@
 # Install required modules
 using Pkg
 Pkg.add("Plots")
-Pkg.add("https://github.com/juanscr/Fuzzy.jl")
+Pkg.add(url="https://github.com/juanscr/Fuzzy.jl")
 
 # Import modules
 using Plots
