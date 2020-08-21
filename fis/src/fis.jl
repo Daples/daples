@@ -1,9 +1,20 @@
+# Install required modules
+using Pkg
+Pkg.add("Plots")
+Pkg.add("https://github.com/juanscr/Fuzzy.jl")
+
+# Import modules
 using Plots
 using Fuzzy
 
-include("tools.jl");
+# Import functions from auxiliary file
+include("Tools.jl");
 
-cwd = "C:\\Users\\Daples\\git\\daples\\fis\\src\\figs\\";
+# Creates figures folder for output
+if ~isdir(joinpath(pwd(), "figs"))
+    mkdir("figs");
+end
+cwd = joinpath(pwd(), "figs");
 
 ## Membership functions
 # Controllers
@@ -11,14 +22,18 @@ contMF_low = SigmoidMF(-20, 0.25, 0);
 contMF_med = BellMF(0.25, 4, 0.5);
 contMF_high = SigmoidMF(10, 0.6, 1);
 in_controllers = [contMF_low, contMF_med, contMF_high];
-plotMFs(in_controllers, [0 1], ["Low", "Medium", "High"], cwd*"contMFs.pdf")
+plotMFs(in_controllers, [0 1], ["Low", "Medium", "High"],
+    joinpath(cwd, "contMFs.pdf")
+)
 
 # x(t)
 xMF_null = TrapezoidalMF(0, 0, 0.1, 0.2);
 xMF_controlled = BellMF(0.15, 5, 0.3);
 xMF_high = TrapezoidalMF(0.4, 0.5, 1, 1);
 in_xs = [xMF_null, xMF_controlled, xMF_high];
-plotMFs(in_xs, [0 1], ["Null", "Controlled", "High"], cwd*"stateMFs.pdf")
+plotMFs(in_xs, [0 1], ["Null", "Controlled", "High"],
+    joinpath(cwd, "stateMFs.pdf")
+)
 
 # Output controllers
 # Δs
@@ -29,7 +44,7 @@ a = 10/ω;
 ΔMF_inc = SigmoidMF(a, ω/3, ω);
 out_controllers = [ΔMF_dec, ΔMF_con, ΔMF_inc];
 plotMFs(out_controllers, [-ω ω],
-    ["Decrease", "Constant", "Increase"], cwd*"outMFs.pdf"
+    ["Decrease", "Constant", "Increase"], joinpath(cwd, "outMFs.pdf")
 )
 
 ## Inputs
@@ -62,42 +77,67 @@ out_Δv["constant"] = ΔMF_con;
 out_Δv["increase"] = ΔMF_inc;
 
 ## Rules
-rules_file = open("rules", "r") do io
-    read(io, String)
-end;
-lines = split(rules_file, "\n")[1:end-1];
-for i in 1:length(lines)
-    lines[i] = replace(lines[i], "\r" => "")
-end
+Tnorm = "A-PROD";
+rules_u, rules_v = set_rules("rules", Tnorm);
 
-rules_u = [];
-rules_v = [];
-norm = "MIN";
-for line in lines
-    ant = split(line, " then ")[1]
-    con = split(line, " then ")[2]
-    push!(rules_u, Rule(split(ant, " and "), split(con, " and ")[1], norm))
-    push!(rules_v, Rule(split(ant, " and "), split(con, " and ")[2], norm))
-end
-
-## FIS
+## FIS Mamdani
 fis_u = FISMamdani(inputs, out_Δu, rules_u, (-ω, ω));
 fis_v = FISMamdani(inputs, out_Δv, rules_v, (-ω, ω));
 
-## FISCS
-x0 = 1;
-u0 = 1;
-v0 = 1;
-T = 150;
-ts, xs, us, vs = simulate_FISCS(x0, u0, v0, T,
-    fis_u = fis_u,
-    fis_v = fis_v,
-    defuzz = "COG"
-);
+## Fuzzy Inference System Control System  (FISCS)
+# Scenarios
+x0s = [1.0 1 1 0 0 0];
+u0s = [0.0 1 0 1 0 1];
+v0s = [0.0 0 1 0 1 1];
+Ts = [150 150 150 300 300 300];
 
-# Plots
-fig = plotPL(ts, real.(xs), label = L"$x(t)$")
-plotPL(ts, us, fig, label = L"$u(t)$", color = :red)
-plotPL(ts, vs, fig, label = L"$v(t)$", color = :orange,
-    legend = :topright, xlabel = L"$t$")
-savefig(cwd*"FISCS-$x0-$u0-$v0.pdf")
+# Three defuzzification methods
+defuzz = ["WTAV", "MOM", "COG"];
+for d in defuzz
+    # Simulate Scenarios
+    ts, xarr, uarr, varr = eval_FISCS(x0s, u0s, v0s, Ts,
+        fis_u, fis_v, defuzz = d
+    )
+    # Generate and export plots
+    plotEvalFISCS(ts, xarr, uarr, varr, cwd, token = d)
+end
+
+# Surfaces
+h = 0.01;
+u_dom = collect(0:h:1);
+v_dom = collect(0:h:1);
+x_dom = collect(0:h:1);
+colormap = :inferno;
+
+# Constant u
+fu(x, y) = eval_fis(fis_u, [0.5, x, y]);
+plot(v_dom, x_dom, fu, st=:surface, c=colormap, camera=(50, 40));
+plot!(xlabel=L"$v(t-h)$", ylabel=L"$x(t)$", legend=:outertopright)
+savefig(joinpath(cwd, "deltaU_constU.pdf"))
+
+fv(x, y) = eval_fis(fis_v, [0.5, x, y]);
+plot(v_dom, x_dom, fv, st=:surface, c=colormap, camera=(50, 40));
+plot!(xlabel=L"$v(t-h)$", ylabel=L"$x(t)$", c=grad, legend=:outertopright)
+savefig(joinpath(cwd, "deltaV_constU.pdf"))
+
+# Constant v
+fu(x, y) = eval_fis(fis_u, [x, 0.5, y]);
+plot(u_dom, x_dom, fu, st=:surface, c=colormap, camera=(30, 40));
+plot!(xlabel=L"$u(t-h)$", ylabel=L"$x(t)$", c=grad, legend=:outertopright)
+savefig(joinpath(cwd, "deltaU_constV.pdf"))
+
+fv(x, y) = eval_fis(fis_v, [x, 0.5, y]);
+plot(u_dom, x_dom, fv, st=:surface, c=colormap, camera=(50, 40));
+plot!(xlabel=L"$u(t-h)$", ylabel=L"$x(t)$", c=grad, legend=:outertopright)
+savefig(joinpath(cwd, "deltaV_constV.pdf"))
+
+# Constant x
+fu(x, y) = eval_fis(fis_u, [x, y, 0.5]);
+plot(u_dom, v_dom, fu, st=:surface, c=colormap, camera=(50, 40));
+plot!(xlabel=L"$u(t-h)$", ylabel=L"$v(t-h)$", c=grad, legend=:outertopright)
+savefig(joinpath(cwd, "deltaU_constX.pdf"))
+
+fv(x, y) = eval_fis(fis_v, [x, y, 0.5]);
+plot(u_dom, v_dom, fv, st=:surface, c=colormap, camera=(40, 40));
+plot!(xlabel=L"$u(t-h)$", ylabel=L"$x(t)$", c=grad, legend=:outertopright)
+savefig(joinpath(cwd, "deltaV_constX.pdf"))

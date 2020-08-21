@@ -1,5 +1,8 @@
+using Pkg
+Pkg.add("LaTeXStrings")
 using Plots
 using LaTeXStrings
+using Fuzzy
 
 # 4th-Order Runge-Kutta
 function rk4(f, x0, h, T)
@@ -41,9 +44,10 @@ function euler(f, x0, h, T)
     return ts, xs
 end
 
-# Better plots
+# Standarize plot format
 function plotPL(x, y,
     add = nothing;
+    z = nothing,
     label = "",
     color = :black,
     lw = 2,
@@ -51,7 +55,10 @@ function plotPL(x, y,
     fontsize = 12,
     font = "times",
     xlabel = "",
-    ylabel = ""
+    ylabel = "",
+    zlabel = "",
+    st = :surface,
+    cam = (-30, 30)
 )
     if isnothing(add)
         global fig = plot(x, y,
@@ -111,7 +118,7 @@ function plotMFs(MFs, dom, labels, outfile; n=1000)
     return fig
 end
 
-# Print combinations
+# Print rules combinations
 function print_combinations(outfile)
     us = ["low" "medium" "high"];
     vs = ["low" "medium" "high"];
@@ -126,6 +133,26 @@ function print_combinations(outfile)
             end
         end
     end
+end
+
+# Create rules from file
+function set_rules(rules_file, norm)
+    rules_file = open(rules_file, "r") do io
+        read(io, String)
+    end;
+    lines = split(rules_file, "\n")[1:end-1];
+    for i in 1:length(lines)
+        lines[i] = replace(lines[i], "\r" => "")
+    end
+    rules_u = [];
+    rules_v = [];
+    for line in lines
+        ant = split(line, " then ")[1]
+        con = split(line, " then ")[2]
+        push!(rules_u, Rule(split(ant, " and "), split(con, " and ")[1], norm))
+        push!(rules_v, Rule(split(ant, " and "), split(con, " and ")[2], norm))
+    end
+    return rules_u, rules_v
 end
 
 # Iterate a single step of euler's method for a given u and v
@@ -144,12 +171,9 @@ function iter_euler(x_prev, t, u, v; h=0.01)
     return t, x_new
 end
 
-function simulate_FISCS(x0, u0, v0, T;
-    fis_u = nothing,
-    fis_v = nothing,
-    h = 0.01,
-    defuzz = "WTAV"
-)
+# Simulates the system with FIS-based controller
+function simulate_FISCS(x0, u0, v0, T, fis_u, fis_v; h = 0.01, defuzz = "WTAV")
+    # Initialization
     arr_size = Int64(T/h)
     xs = zeros(ComplexF64, arr_size)
     ts = zeros(Float64, arr_size)
@@ -160,6 +184,7 @@ function simulate_FISCS(x0, u0, v0, T;
     vs[1] = v0
     t = 0
     t, xs[2] = iter_euler(x0, t, u0, v0, h = h)
+    # Simulate
     for i in 2:arr_size-1
         ts[i] = t
         # Evaluate FIS for new controls
@@ -169,6 +194,40 @@ function simulate_FISCS(x0, u0, v0, T;
         # Find next point
         t, xs[i+1] = iter_euler(xs[i], t, us[i], vs[i])
     end
+    us[end] = us[end-1]
+    vs[end] = vs[end-1]
     ts[end] = t
     return ts, xs, us, vs
+end
+
+# Evaluate FISCS for a set of scenarios
+function eval_FISCS(x0s, u0s, v0s, Ts, fis_u, fis_v; h = 0.01, defuzz = "WTAV")
+    tarr = []
+    xarr = []
+    uarr = []
+    varr = []
+    sims = []
+    for i in 1:length(x0s)
+        ts, xs, us, vs = simulate_FISCS(x0s[i], u0s[i], v0s[i], Ts[i], fis_u,
+            fis_v, h = h, defuzz = defuzz
+        )
+        push!(tarr, ts)
+        push!(xarr, xs)
+        push!(uarr, us)
+        push!(varr, vs)
+        push!(sims, [x0s[i] u0s[i] v0s[i]])
+    end
+    return tarr, xarr, uarr, varr
+end
+
+# Generates and exports plots for different scenarios results
+function plotEvalFISCS(tarr, xarr, uarr, varr, cwd; token = "")
+    for i in 1:length(xarr)
+        fig = plotPL(tarr[i], uarr[i], color = :blue, label=L"$u(t)$")
+        plotPL(tarr[i], varr[i], fig, color = :orange, label=L"$v(t)$")
+        plotPL(tarr[i], real.(xarr[i]), fig, color = :black,
+            label=L"$x(t)$", xlabel=L"$t$", legend=:topright
+        )
+        savefig(joinpath(cwd, token*"_sc$i.pdf"))
+    end
 end
