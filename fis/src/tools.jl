@@ -230,4 +230,5 @@ function plotEvalFISCS(tarr, xarr, uarr, varr, cwd; token = "")
         )
         savefig(joinpath(cwd, token*"_sc$i.pdf"))
     end
+    return fig
 end
