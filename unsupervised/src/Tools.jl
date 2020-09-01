@@ -121,7 +121,7 @@ function scatterPL(x, y,
     end
 end
 
-function plot_clusters(protos, U, data, out_file)
+function plot_k_means(protos, U, data, out_file)
     k = size(protos, 1)
     for j in 1:k
         data_cluster = data[U[j, :] .== 1, :]
@@ -136,6 +136,12 @@ function plot_clusters(protos, U, data, out_file)
     return fig
 end
 
+function plot_mountains(protos, data, out_file)
+    fig = scatterPL(data[:, 1], data[:, 2])
+    scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=5)
+    save(fig, out_file)
+    return fig
+end
 ## Similarities
 # Assuming the vectors are columns (n, 1)
 function minkowski(data, y, arg)
