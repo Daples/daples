@@ -1,4 +1,3 @@
-
 include("Tools.jl")
 
 function initialize_membership(c, n)
@@ -17,20 +16,21 @@ end
 # data (n, p)
 # protos (c, p)
 # U, dists (c, n)
-function fuzzy_c_means(data, c, dist, m; γ=0.001, arg=nothing)
+function fuzzy_c_means(data, c, dist, m; γ=0.001, arg=nothing, norm=true)
+    data = norm ? normalize(data) : data
     n, p = size(data)
     # Initialize
     U = initialize_membership(c, n)
     Uᵐ = U.^m
     # Iterate
     improv = Inf
-    dists = zeros(k, n)
+    dists = zeros(c, n)
     cost = 0
     improvs = []
     while improv >= γ
         # Find current clusters
         global protos = Uᵐ * data ./ sum(Uᵐ, dims=2)
-        for j in 1:k
+        for j in 1:c
             dists[j, :] = dist(data, reshape(protos[j, :], (1, p)), arg)
         end
         # Evaluate improvement
@@ -40,7 +40,8 @@ function fuzzy_c_means(data, c, dist, m; γ=0.001, arg=nothing)
         push!(improvs, improv)
         # New memberships
         U = 1 ./ (c * dists ./ sum(dists, dims=1)).^(2/(m - 1))
+        U ./= sum(U, dims=1)
         Uᵐ = U.^m
     end
-    return protos, U, improvs
+    return data, protos, U, improvs
 end
