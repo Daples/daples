@@ -1,4 +1,5 @@
 using StatsBase
+include("Tools.jl")
 
 # data -> (n, p)
 # protos -> (k, p)
@@ -20,7 +21,8 @@ function cost_fun(U, dists)
     return sum(dists*transpose(U))
 end
 
-function k_means(data, k, dist; γ=0.001, arg=nothing)
+function k_means(data, k, dist; γ=0.001, arg=nothing, norm=true)
+    data = norm ? normalize(data) : data
     # Initialize prototypes
     n = size(data, 1)
     indexes = collect(1:n)
@@ -42,5 +44,5 @@ function k_means(data, k, dist; γ=0.001, arg=nothing)
         push!(improvs, improv)
     end
     U, _ = find_membership(data, k, dist, protos, arg)
-    return protos, U, improvs
+    return data, protos, U, improvs
 end
