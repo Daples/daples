@@ -2,7 +2,7 @@ using StatsBase
 
 # data -> (n, p)
 # protos -> (k, p)
-# U, distances -> (k, n)
+# U, dists -> (k, n)
 function find_membership(data, k, dist, protos, arg)
     n = size(data, 1)
     U = zeros(k, n)
@@ -32,7 +32,6 @@ function k_means(data, k, dist; γ=0.001, arg=nothing)
     cost = 0
     improvs = []
     while improv >= γ
-        push!(improvs, improv)
         # New groups and prototypes
         U, dists = find_membership(data, k, dist, protos, arg)
         protos = (U * data) ./ sum(U, dims=2)
@@ -40,6 +39,7 @@ function k_means(data, k, dist; γ=0.001, arg=nothing)
         prev_cost = cost
         cost = cost_fun(U, dists)
         improv = abs(prev_cost - cost)
+        push!(improvs, improv)
     end
     U, _ = find_membership(data, k, dist, protos, arg)
     return protos, U, improvs
