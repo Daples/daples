@@ -121,22 +121,23 @@ function scatterPL(x, y,
     end
 end
 
-function plot_k_means(protos, U, data, out_file)
+function plot_k_clusters(protos, U, data, out_file)
     k = size(protos, 1)
     for j in 1:k
-        data_cluster = data[U[j, :] .== 1, :]
+        aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
+        data_cluster = data[[x[2] for x in aux], :]
         if j == 1
             global fig = scatterPL(data_cluster[:, 1], data_cluster[:, 2])
         else
             scatterPL(data_cluster[:, 1], data_cluster[:, 2], fig)
         end
     end
-    scatterPL(protos[:, 1], protos[:, 2], fig, color=:black)
+    scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=4)
     save(fig, out_file)
     return fig
 end
 
-function plot_mountains(protos, data, out_file)
+function plot_density(protos, data, out_file)
     fig = scatterPL(data[:, 1], data[:, 2])
     scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=5)
     save(fig, out_file)
@@ -163,4 +164,8 @@ function rand_params_MvN(a, b, p)
     Σ = rand(p, p)
     Σ = 0.5 * (Σ + Σ') + p*I
     return μ, Σ
+end
+
+function normalize(data)
+    return data ./ maximum(abs.(data), dims=1)
 end
