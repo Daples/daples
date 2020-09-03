@@ -37,6 +37,7 @@ function plotPL(x, y,
             titlefont = (fontsize, font),
             xtickfont = (fontsize, font),
             ytickfont = (fontsize, font),
+            guidefont = (fontsize, font),
             legendfontsize = fontsize
         )
     else
@@ -50,6 +51,7 @@ function plotPL(x, y,
             titlefont = (fontsize, font),
             xtickfont = (fontsize, font),
             ytickfont = (fontsize, font),
+            guidefont = (fontsize, font),
             legendfontsize = fontsize
         )
     end
@@ -80,39 +82,85 @@ function scatterPL(x, y,
     markersizewidth = 0
 )
     if isnothing(add)
-        global fig = scatter(x, y,
-            label = label,
-            color = color,
-            lw = lw,
-            legend = legend,
-            xlabel = xlabel,
-            ylabel = ylabel,
-            titlefont = (fontsize, font),
-            xtickfont = (fontsize, font),
-            ytickfont = (fontsize, font),
-            legendfontsize = fontsize,
-            markersize = markersize,
-            markershape = markershape,
-            markerstrokewidth = markerstrokewidth,
-            markersizewidth = markersizewidth
-        )
+        if isnothing(z)
+            global fig = scatter(x, y,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth
+            )
+        else
+            global fig = scatter(x, y, z,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                zlabel = zlabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                ztickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth
+            )
+        end
     else
-        scatter!(add, x, y,
-            label = label,
-            color = color,
-            lw = lw,
-            legend = legend,
-            xlabel = xlabel,
-            ylabel = ylabel,
-            titlefont = (fontsize, font),
-            xtickfont = (fontsize, font),
-            ytickfont = (fontsize, font),
-            legendfontsize = fontsize,
-            markersize = markersize,
-            markershape = markershape,
-            markerstrokewidth = markerstrokewidth,
-            markersizewidth = markersizewidth
-        )
+        if isnothing(z)
+            scatter!(add, x, y, z,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth
+            )
+        else
+            scatter!(add, x, y,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                zlabel = zlabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                ztickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth
+            )
+        end
     end
     if isnothing(add)
         return fig
@@ -137,12 +185,38 @@ function plot_k_clusters(protos, U, data, out_file)
     return fig
 end
 
-function plot_density(protos, data, out_file)
+function plot_density_clusters(protos, data, out_file)
     fig = scatterPL(data[:, 1], data[:, 2])
     scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=5)
     save(fig, out_file)
     return fig
 end
+
+function plot_3DClusters(protos, U, sample_data, out_file, labels)
+    k = size(protos, 1)
+    for j in 1:k
+        aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
+        data_cluster = data[[x[2] for x in aux], :]
+        if j == 1
+            global fig = scatterPL(data_cluster[:, 1], data_cluster[:, 2],
+                z=data_cluster[:, 3]
+            )
+        else
+            scatterPL(data_cluster[:, 1], data_cluster[:, 2], fig,
+                z=data_cluster[:, 3]
+            )
+        end
+    end
+    scatterPL(protos[:, 1], protos[:, 2], fig,
+        z=protos[:, 3], color=:black, markersize=5,
+        xlabel=labels[1],
+        ylabel=labels[2],
+        zlabel=labels[3]
+    )
+    save(fig, out_file)
+    return fig
+end
+
 ## Similarities
 # Assuming the vectors are columns (n, 1)
 function minkowski(data, y, arg)
@@ -168,4 +242,23 @@ end
 
 function normalize(data)
     return data ./ maximum(abs.(data), dims=1)
+end
+
+function read_iris(iris_file)
+    iris_file = open(iris_file, "r") do io
+        read(io, String)
+    end
+    lines = split(iris_file, "\n")[1:end-1]
+    lines = replace.(lines, "\r" => "")
+    data = split.(lines, ",")
+    tags = map(x -> x[end], data)
+    data = map(x -> x[1:end-1], data)
+    n = size(data)[1]
+    p = size(data[1])[1]
+    data = [parse.(Float64, point) for point in data]
+    aux = reshape(data[1], (1, p))
+    for j in 2:n
+        aux = vcat(aux, reshape(data[j], (1, p)))
+    end
+    return aux, tags
 end
