@@ -10,7 +10,7 @@ function initialize_membership(c, n)
 end
 
 function cost_fun(Uᵐ, dists)
-    return sum(dists.^2 * transpose(Uᵐ))
+    return sum(Uᵐ .* dists.^2)
 end
 
 # data (n, p)
@@ -39,8 +39,11 @@ function fuzzy_c_means(data, c, dist, m; γ=0.001, arg=nothing, norm=true)
         improv = abs(prev_cost - cost)
         push!(improvs, improv)
         # New memberships
-        U = 1 ./ (c * dists ./ sum(dists, dims=1)).^(2/(m - 1))
-        U ./= sum(U, dims=1)
+        for i in 1:c
+            for j in 1:n
+                U[i, j] = 1 / sum((dists[i, j] ./ dists[:, j]) .^ (2 / (m - 1)))
+            end
+        end
         Uᵐ = U.^m
     end
     return data, protos, U, improvs
