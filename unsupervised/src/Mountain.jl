@@ -36,7 +36,7 @@ function mountain_cluster(data, dist, n_grid, σ, β;
             global M = evals[k][ind_max]
         else
             Mk = evals[k][ind_max]
-            if Mk/M < γ
+            if abs(Mk/M) < γ
                 break
             end
         end
