@@ -18,7 +18,7 @@ function find_membership(data, k, dist, protos, arg)
 end
 
 function cost_fun(U, dists)
-    return sum(dists*transpose(U))
+    return sum(U .* dists)
 end
 
 function k_means(data, k, dist; γ=0.001, arg=nothing, norm=true)
