@@ -1,7 +1,7 @@
 include("Tools.jl")
 
 function subtractive_cluster(data, dist, rₐ;
-    γ=0.4, n_it=10, arg=nothing, norm=true
+    ϵ_up = 0.5, ϵ_down = 0.15, n_it=10, arg=nothing, norm=true
 )
     data = norm ? normalize(data) : data
     n, p = size(data)
@@ -13,23 +13,39 @@ function subtractive_cluster(data, dist, rₐ;
             reshape(data[j, :], (1, p)), arg).^2 ./ (rₐ/2)^2))
     end
     # Iterate
-    protos = zeros(1, p)
     evals = []
+    update = true
     for k in 1:n_it
         ind_max = argmax(D)[1]
+        pₖ = reshape(data[ind_max, :], (1, p))
         if k == 1
             global M = D[ind_max]
+            global protos = pₖ
             push!(evals, M)
         else
-            Mk = D[ind_max]
-            push!(evals, Mk)
-            if Mk/M < γ
+            Mₖ = D[ind_max]
+            if Mₖ > ϵ_up * M
+                protos = vcat(protos, pₖ)
+                push!(evals, Mₖ)
+            elseif Mₖ < ϵ_down * M
                 break
+            else
+                dmin = minimum(dist(protos, pₖ, arg))
+                if (dmin/rₐ + Mₖ/M) >= 1
+                    protos = vcat(protos, pₖ)
+                    push!(evals, Mₖ)
+                    update = true
+                else
+                    D[ind_max] = 0
+                    update = false
+                end
             end
         end
-        D -= D[ind_max] * exp.(-dist(data,
-            reshape(data[ind_max, :], (1, p)), arg).^2 ./ (rᵦ/2)^2)
-        protos = vcat(protos, reshape(data[ind_max, :], (1, p)))
+        if update
+            D -= D[ind_max] * exp.(-dist(data,
+                reshape(data[ind_max, :], (1, p)), arg).^2 ./ (rᵦ/2)^2)
+        end
     end
-    return data, protos[2:end, :], evals
+    U, _ = find_membership(data, dist, protos, arg)
+    return data, protos, U, evals
 end
