@@ -1,6 +1,7 @@
 using Plots
 using LinearAlgebra
 using LaTeXStrings
+using Combinatorics
 
 ## Plots
 function save(fig, out_file)
@@ -185,13 +186,6 @@ function plot_k_clusters(protos, U, data, out_file)
     return fig
 end
 
-function plot_density_clusters(protos, data, out_file)
-    fig = scatterPL(data[:, 1], data[:, 2])
-    scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=5)
-    save(fig, out_file)
-    return fig
-end
-
 function plot_3DClusters(protos, U, sample_data, out_file, labels)
     k = size(protos, 1)
     for j in 1:k
@@ -217,6 +211,18 @@ function plot_3DClusters(protos, U, sample_data, out_file, labels)
     return fig
 end
 
+function plot_nDimData(protos, U, sample_data, out_file)
+    n, p = size(data)
+    for j in 1:binomial(p, 3)
+        k1 = j % p + 1
+        k2 = (j+1) % p + 1
+        k3 = (j+2) % p + 1
+        plot_3DClusters(protos_cmeans[:, k1:sign(k3-k1):k3], U_cmeans,
+            data[:, k1:sign(k3-k1):k3], out_file*"$j.pdf", ("x$k1", "x$k2", "x$k3")
+        )
+    end
+end
+
 ## Similarities
 # Assuming the vectors are columns (n, 1)
 function minkowski(data, y, arg)
@@ -232,6 +238,19 @@ function manhattan(data, y, arg)
 end
 
 ## Misc
+function find_membership(data, dist, protos, arg)
+    n = size(data, 1)
+    k, p = size(protos)
+    U = zeros(k, n)
+    dists = zeros(k, n)
+    for j in 1:k
+        dists[j, :] = dist(data, reshape(protos[j, :], (1, p)), arg)
+    end
+    indexes_min = argmin(dists, dims=1)
+    U[indexes_min] .= 1
+    return U, dists
+end
+
 function rand_params_MvN(a, b, p)
     u = Uniform(a, b)
     μ = rand(u, p)
