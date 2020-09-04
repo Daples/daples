@@ -1,8 +1,19 @@
 include("Tools.jl")
 
+# Algorithm
+#   data -> (n, p) dataset matrix
+#   c -> Number of clusters
+#   dist -> Similarity function
+#   rₐ -> Neighborhood parameter
+#   ϵ_up -> Upper tolerance for acceptance
+#   ϵ_down -> Lower tolerance for rejection
+#   n_it -> Maximum number of iterations
+#   arg -> Additional parameter for similarity function
+#   norm -> Whether the data will be normalized or not
 function subtractive_cluster(data, dist, rₐ;
     ϵ_up = 0.5, ϵ_down = 0.15, n_it=10, arg=nothing, norm=true
 )
+    # Normalize data
     data = norm ? normalize(data) : data
     n, p = size(data)
     rᵦ = 1.5 * rₐ
@@ -16,6 +27,7 @@ function subtractive_cluster(data, dist, rₐ;
     evals = []
     update = true
     for k in 1:n_it
+        # Find point with maximum density
         ind_max = argmax(D)[1]
         pₖ = reshape(data[ind_max, :], (1, p))
         if k == 1
@@ -23,6 +35,7 @@ function subtractive_cluster(data, dist, rₐ;
             global protos = pₖ
             push!(evals, M)
         else
+            # Accept/Reject procedure from original paper
             Mₖ = D[ind_max]
             if Mₖ > ϵ_up * M
                 protos = vcat(protos, pₖ)
@@ -41,11 +54,13 @@ function subtractive_cluster(data, dist, rₐ;
                 end
             end
         end
+        # Updates the density with found cluster
         if update
             D -= D[ind_max] * exp.(-dist(data,
                 reshape(data[ind_max, :], (1, p)), arg).^2 ./ (rᵦ/2)^2)
         end
     end
+    # Find nearest points to found cluster centers
     U, _ = find_membership(data, dist, protos, arg)
     return data, protos, U, evals
 end

@@ -1,17 +1,31 @@
-using Plots
+using Pkg
+
+Pkg.add("Distributions")
+Pkg.add("LaTeXStrings")
+Pkg.add("LinearAlgebra")
+Pkg.add("Plots")
+
+using Distributions
 using LinearAlgebra
 using LaTeXStrings
-using Combinatorics
+using Plots
+
+
 
 ## Plots
-function save(fig, out_file)
+# Standardize file saving
+function save(fig, out_file; dir="")
     if ~isdir(joinpath(pwd(), "figs"))
         mkdir("figs");
     end
-    plot_wd = joinpath(pwd(), "figs");
+    if ~isdir(joinpath(pwd(), "figs", dir))
+        mkdir(joinpath(pwd(), "figs", dir))
+    end
+    plot_wd = joinpath(pwd(), "figs", dir);
     savefig(fig, joinpath(plot_wd, out_file))
 end
 
+# Standardize plots and surfaces
 function plotPL(x, y,
     add = nothing;
     z = nothing,
@@ -28,33 +42,69 @@ function plotPL(x, y,
     cam = (-30, 30)
 )
     if isnothing(add)
-        global fig = plot(x, y,
-            label = label,
-            color = color,
-            lw = lw,
-            legend = legend,
-            xlabel = xlabel,
-            ylabel = ylabel,
-            titlefont = (fontsize, font),
-            xtickfont = (fontsize, font),
-            ytickfont = (fontsize, font),
-            guidefont = (fontsize, font),
-            legendfontsize = fontsize
-        )
+        if isnothing(z)
+            global fig = plot(x, y,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize
+            )
+        else
+            global fig = plot(x, y, z,
+                label = label,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                zlabel = zlabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                ztickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                st = st
+            )
+        end
     else
-        plot!(add, x, y,
-            label = label,
-            color = color,
-            lw = lw,
-            legend = legend,
-            xlabel = xlabel,
-            ylabel = ylabel,
-            titlefont = (fontsize, font),
-            xtickfont = (fontsize, font),
-            ytickfont = (fontsize, font),
-            guidefont = (fontsize, font),
-            legendfontsize = fontsize
-        )
+        if isnothing(z)
+            plot!(add, x, y,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize
+            )
+        else
+            plot!(add, x, y, z,
+                label = label,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                zlabel = zlabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                ztickfont = (fontsize, font),
+                guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                st = st
+            )
+        end
     end
     if isnothing(add)
         return fig
@@ -63,6 +113,7 @@ function plotPL(x, y,
     end
 end
 
+# Standardize scatters
 function scatterPL(x, y,
     add = nothing;
     z = nothing,
@@ -80,7 +131,9 @@ function scatterPL(x, y,
     markersize = 3,
     markershape = :circle,
     markerstrokewidth = 0,
-    markersizewidth = 0
+    markersizewidth = 0,
+    markeralpha = 1,
+    markerstrokealpha = 0
 )
     if isnothing(add)
         if isnothing(z)
@@ -99,7 +152,9 @@ function scatterPL(x, y,
                 markersize = markersize,
                 markershape = markershape,
                 markerstrokewidth = markerstrokewidth,
-                markersizewidth = markersizewidth
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
             )
         else
             global fig = scatter(x, y, z,
@@ -119,7 +174,9 @@ function scatterPL(x, y,
                 markersize = markersize,
                 markershape = markershape,
                 markerstrokewidth = markerstrokewidth,
-                markersizewidth = markersizewidth
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
             )
         end
     else
@@ -139,7 +196,9 @@ function scatterPL(x, y,
                 markersize = markersize,
                 markershape = markershape,
                 markerstrokewidth = markerstrokewidth,
-                markersizewidth = markersizewidth
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
             )
         else
             scatter!(add, x, y,
@@ -159,7 +218,9 @@ function scatterPL(x, y,
                 markersize = markersize,
                 markershape = markershape,
                 markerstrokewidth = markerstrokewidth,
-                markersizewidth = markersizewidth
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
             )
         end
     end
@@ -170,7 +231,9 @@ function scatterPL(x, y,
     end
 end
 
-function plot_k_clusters(protos, U, data, out_file)
+# Plot 2D clusters with respective data. Includes sequence of cluster centers
+# for K-Means and Fuzzy-C-Means algorithms.
+function plot_k_clusters(protos, U, data, out_file; dir="", protos_iter=nothing)
     k = size(protos, 1)
     for j in 1:k
         aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
@@ -181,12 +244,24 @@ function plot_k_clusters(protos, U, data, out_file)
             scatterPL(data_cluster[:, 1], data_cluster[:, 2], fig)
         end
     end
-    scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=4)
-    save(fig, out_file)
+    if ~isnothing(protos_iter)
+        n_protos = size(protos_iter, 1)
+        alphas = collect(0:1:n_protos) ./ n_protos
+        j = 1
+        for proto in protos_iter
+            scatterPL(proto[:, 1], proto[:, 2], fig,
+                color=:grey, markersize=4, markeralpha=alphas[j]
+            )
+            j += 1
+        end
+    end
+    scatterPL(protos[:, 1], protos[:, 2], fig, color=:black, markersize=7)
+    save(fig, out_file, dir=dir)
     return fig
 end
 
-function plot_3DClusters(protos, U, sample_data, out_file, labels)
+# Plot 3D scatter of clusters and their centers
+function plot_3DClusters(protos, U, sample_data, out_file, labels; dir="")
     k = size(protos, 1)
     for j in 1:k
         aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
@@ -207,37 +282,73 @@ function plot_3DClusters(protos, U, sample_data, out_file, labels)
         ylabel=labels[2],
         zlabel=labels[3]
     )
-    save(fig, out_file)
+    save(fig, out_file, dir=dir)
     return fig
 end
 
-function plot_nDimData(protos, U, sample_data, out_file)
+# Projects above method for higher dimensions
+function plot_nDimGroups(protos, U, sample_data, out_file; dir="")
     n, p = size(data)
     for j in 1:binomial(p, 3)
         k1 = j % p + 1
         k2 = (j+1) % p + 1
         k3 = (j+2) % p + 1
         plot_3DClusters(protos_cmeans[:, k1:sign(k3-k1):k3], U_cmeans,
-            data[:, k1:sign(k3-k1):k3], out_file*"$j.pdf", ("x$k1", "x$k2", "x$k3")
+            data[:, k1:sign(k3-k1):k3],
+            out_file*"$j.pdf",
+            ("x$k1", "x$k2", "x$k3"),
+            dir=dir
         )
     end
 end
 
+# Plots a 3D surface of the density of two variables (mount and sub only).
+function plot_density(aux, evals, dims; arg=1)
+    indexes = [i in dims ? (1:size(evals, i)) : arg for i in 1:length(size(evals))]
+    return plotPL(
+        aux[dims[1]], aux[dims[2]], z=evals[indexes...],
+        xlabel = "x$(dims[1])",
+        ylabel = "x$(dims[2])",
+        zlabel = "Density"
+    )
+end
+
+# Exports a GIF with the density destruction (sub and mount only).
+function generate_density_gif(aux, evals, out_file; arg=1, fps=1, dir="")
+    s = joinpath(pwd(), "figs", dir)
+    if dir != "" && ~isdir(s)
+        mkdir(s)
+    end
+    dims_arr = [(i, i+1) for i in 1:(length(aux) - 1)]
+    for dims in dims_arr
+        anim = @animate for i in 1:size(evals, 1)
+            plot_density(aux, evals[i], dims, arg=arg)
+        end
+        outfile = joinpath(pwd(), "figs", dir,"dims"*string(dims)*"_"*out_file)
+        gif(anim, outfile, fps=fps)
+    end
+end
+
 ## Similarities
-# Assuming the vectors are columns (n, 1)
-function minkowski(data, y, arg)
+function pnorm(data, y, arg)
     return (sum(abs.(data .- y).^arg, dims=2)).^(1/arg)
 end
 
 function euclidean(data, y, arg)
-    return minkowski(data, y, 2)
+    return pnorm(data, y, 2)
 end
 
 function manhattan(data, y, arg)
-    return minkowski(data, y, 1)
+    return pnorm(data, y, 1)
+end
+
+function mahal(data, y, IV)
+    diff = data .- y
+    return sqrt.(sum(diff * IV .* diff, dims=2))
 end
 
 ## Misc
+# Find memebership matrix of data to given cluster centers
 function find_membership(data, dist, protos, arg)
     n = size(data, 1)
     k, p = size(protos)
@@ -251,6 +362,7 @@ function find_membership(data, dist, protos, arg)
     return U, dists
 end
 
+# Randomizes parameters for a Multivariate Normal Distributions for gen([a,b])
 function rand_params_MvN(a, b, p)
     u = Uniform(a, b)
     μ = rand(u, p)
@@ -259,10 +371,21 @@ function rand_params_MvN(a, b, p)
     return μ, Σ
 end
 
+# Generates data from a Multivariate Normal Distribution
+function generate_MvN_Mixture(p, k, n; b = 25)
+    data = rand(MvNormal(rand_params_MvN(0, b, p)...), n)';
+    for j = 1:k-1
+        data = vcat(data, rand(MvNormal(rand_params_MvN(0, b, p)...), n)')
+    end
+    return data
+end
+
+# Normalize data with max|x_i| -> [-1,1] hypercube.
 function normalize(data)
     return data ./ maximum(abs.(data), dims=1)
 end
 
+# Read Iris dataset
 function read_iris(iris_file)
     iris_file = open(iris_file, "r") do io
         read(io, String)

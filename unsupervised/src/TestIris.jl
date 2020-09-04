@@ -1,19 +1,17 @@
-using Plots
-
 include("K-Means.jl")
 include("Tools.jl")
 include("Mountain.jl")
 include("Fuzzy-C-Means.jl")
-include("Subtractive-Clustering.jl")
+include("Subtractive.jl")
 
 ## Read Iris Dataset
 data, tags = read_iris("iris.data")
 dist = euclidean
 
 ## Mountain
-n_grid = 25
+n_grid = 20
 σ = 0.1
-β = 0.3
+β = 0.15
 data, protos_mount, U_mount, grid, aux, evals_mount = mountain_cluster(
     data, dist, n_grid, σ, β; n_it = 10, γ=0.4, arg=nothing, norm=true
 )
@@ -38,7 +36,10 @@ _, protos_cmeans, U_cmeans, improvs_cmeans = fuzzy_c_means(
 
 ## Output Plots
 # Generate 3D proyections
-plot_nDimData(protos_mount, U_mount, data, "mountain-Iris")
-plot_nDimData(protos_sub, U_sub, data, "subtractive-Iris")
-plot_nDimData(protos_kmeans, U_kmeans, data, "k-Means-Iris")
-plot_nDimData(protos_cmeans, U_cmeans, data, "fuzzy-C-Means-Iris")
+plot_nDimGroups(protos_mount, U_mount, data, "mountain-Iris", dir="Iris-Mount")
+plot_nDimGroups(protos_sub, U_sub, data, "subtractive-Iris", dir="Iris-Sub")
+plot_nDimGroups(protos_kmeans, U_kmeans, data, "KM-Iris", dir="Iris-KM")
+plot_nDimGroups(protos_cmeans, U_cmeans, data, "FCM-Iris", dir="Iris-FCM")
+
+# Generate GIFs for densities
+generate_density_gif(aux, evals_mount, "iris.gif", dir="IrisDensityGifs")
