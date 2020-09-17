@@ -1,4 +1,4 @@
-include("Tools.jl")
+include("Tools.jl");
 
 # Construct grid
 #   data -> (n, p) dataset matrix
