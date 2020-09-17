@@ -1,15 +1,17 @@
-include("K-Means.jl")
-include("Tools.jl")
-include("Mountain.jl")
-include("Fuzzy-C-Means.jl")
-include("Subtractive.jl")
+include("Fuzzy-C-Means.jl");
+include("K-Means.jl");
+include("Mountain.jl");
+include("Subtractive.jl");
+
+include("PlotTools.jl");
+include("Tools.jl");
 
 ## Read Iris Dataset
 data, tags = read_iris("iris.data")
 dist = euclidean
 
 ## Mountain
-n_grid = 20
+n_grid = 10
 σ = 0.1
 β = 0.15
 data, protos_mount, U_mount, grid, aux, evals_mount = mountain_cluster(
