@@ -1,4 +1,4 @@
-include("Tools.jl")
+include("Tools.jl");
 
 # Initialize membership matrix with random vector
 #   c -> Number of clusters
