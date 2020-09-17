@@ -1,4 +1,4 @@
-include("Tools.jl")
+include("Tools.jl");
 
 # Algorithm
 #   data -> (n, p) dataset matrix
