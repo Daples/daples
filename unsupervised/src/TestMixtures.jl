@@ -1,8 +1,10 @@
-include("K-Means.jl")
-include("Tools.jl")
-include("Mountain.jl")
-include("Fuzzy-C-Means.jl")
-include("Subtractive.jl")
+include("Fuzzy-C-Means.jl");
+include("K-Means.jl");
+include("Mountain.jl");
+include("Subtractive.jl");
+
+include("Tools.jl");
+include("PlotTools.jl");
 
 # Create dataset from a Mixture of Multivariate Normal Distributions
 #   k -> Number of different distributions (clusters)
