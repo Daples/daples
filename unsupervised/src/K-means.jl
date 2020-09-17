@@ -1,5 +1,5 @@
 using StatsBase
-include("Tools.jl")
+include("Tools.jl");
 
 # Cost Function
 #   U -> (k, n) fuzzy membership matrix
