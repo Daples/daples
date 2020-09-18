@@ -7,7 +7,7 @@ include("PlotTools.jl");
 include("Tools.jl");
 
 ## Read Iris Dataset
-data, tags = read_iris("iris.data")
+data, tags = read_iris("data/iris.data")
 dist = euclidean
 
 ## Mountain
