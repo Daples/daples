@@ -1,7 +1,7 @@
 include("Tools.jl");
 include("PlotTools.jl");
 
-iris_data, tags = read_iris("iris.data");
+iris_data, tags = read_iris("data/iris.data");
 new_data = tsne(normalize(iris_data), verbose=true);
 
 iris_setosa = new_data[tags .== "Iris-setosa", :];
