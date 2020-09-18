@@ -24,7 +24,6 @@ function eval_grid(grid, f)
 end
 
 # Algorithm
-# Algorithm
 #   data -> (n, p) dataset matrix
 #   dist -> Similarity function
 #   n_grid -> Number of points on each dimension
@@ -35,6 +34,56 @@ end
 #   γ -> Tolerance for stop criterion
 #   norm -> Whether the data will be normalized or not
 function mountain_cluster(data, dist, n_grid, σ, β;
+    n_it = 10, γ=0.4, arg=nothing, norm=true, full=true, v=false
+)
+    # Normalize data
+    data = norm ? normalize(data) : data
+    n, p = size(data)
+    # Construct grid
+    grid, aux = construct_grid(data, n_grid)
+    # Define the initial density function
+    f(v) = sum(exp.(-dist(data, reshape(collect(v), (1, p)), arg).^2 / (2*σ^2)))
+    # Iterate
+    evals = [eval_grid(grid, f)]
+    for k in 1:n_it
+        v ? println("Iter ", k) : nothing
+        # Find the point with maximum density
+        ind_max = argmax(evals[k])
+        pₖ = reshape(collect(grid[ind_max]), (1, p))
+        if k == 1
+            global M = evals[k][ind_max]
+            global protos = pₖ
+            v ? println(M) : nothing
+        else
+            # Stop criterion or accept cluster center
+            Mk = evals[k][ind_max]
+            v ? println(Mk) : nothing
+            if abs(Mk/M) < γ
+                break
+            else
+                protos = vcat(protos, pₖ)
+            end
+        end
+        # Update density ds
+        L = k == 1 ? M : Mk
+        push!(evals, evals[k] - L*eval_grid(grid, v -> exp(
+            - dist(reshape(protos[k, :], (1, p)), reshape(collect(v), (1, p)),
+                arg)[1]^2 / (2*β^2))))
+    end
+    # Find the nearest points to the found clusters
+    U, _ = find_membership(data, dist, protos, arg)
+    if ~full
+        grid = nothing
+        aux = nothing
+        evals = nothing
+    else
+        evals = evals[1:end-1]
+    end
+    return data, protos, U, grid, aux, evals
+end
+
+###############################
+function mountain_cluster_deprecated(data, dist, n_grid, σ, β;
     n_it = 10, γ=0.4, arg=nothing, norm=true
 )
     # Normalize data
@@ -48,6 +97,7 @@ function mountain_cluster(data, dist, n_grid, σ, β;
     # Iterate
     evals = []
     for k in 1:n_it
+        print(k)
         # Find the point with maximum density
         push!(evals, eval_grid(grid, fs[k]))
         ind_max = argmax(evals[k])
