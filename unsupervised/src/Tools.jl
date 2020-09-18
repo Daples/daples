@@ -82,3 +82,25 @@ function read_iris(iris_file)
     end
     return aux, tags
 end
+
+# Read Counties dataset
+function read_countries(country_file)
+    country_file = open(country_file, "r") do io
+        read(io, String)
+    end
+    lines = split(country_file, "\n")
+    lines = lines[1:end-1]
+    data = split.(lines, ",")
+    header = split(data[1], ",")[1]
+    data = data[2:end]
+    countries = map(x -> x[1], data)
+    data = map(x -> x[2:end], data)
+    n = size(data)[1]
+    p = size(data[1])[1]
+    data = [parse.(Float64, point) for point in data]
+    aux = reshape(data[1], (1, p))
+    for j in 2:n
+        aux = vcat(aux, reshape(data[j], (1, p)))
+    end
+    return aux, countries, header
+end
