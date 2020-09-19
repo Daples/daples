@@ -104,3 +104,66 @@ function read_countries(country_file)
     end
     return aux, countries, header
 end
+
+function print_2Dmatrix(mat)
+    m, n = size(mat)
+    print("[\n")
+    for i in 1:m
+        for j in 1:n-1
+            print(mat[i, j], "  ")
+        end
+        print(mat[i, n], ";\n")
+    end
+    print("]\n")
+end
+
+## Data Analysis
+function remove_collinear(data; γ=0.85)
+    n, p = size(data)
+    indexes = collect(1:p)
+    rms = []
+    new_data = data
+    R = nothing
+    while true
+        Σ = cov(new_data)
+        d1 = diag(Σ);
+        d2 = diag(inv(Σ));
+        R =  1 .- 1 ./ (d1.*d2);
+        M, ind_max = findmax(R)
+        if M <= γ
+            break
+        end
+        append!(rms, splice!(indexes, indexes[ind_max]))
+        new_data = data[:, indexes]
+    end
+    return new_data, rms, R
+end
+
+function screes(data; corr=false)
+    Σ = ~corr ? cov(data) : cor(data)
+    return collect(1:size(data, 2)), sort(eigvals(Σ), rev=true)
+end
+
+function tukey(point, data; n=500)
+    r, c = size(data)
+    u = rand(Normal(0, 1), (c, n))
+    scalar1 = data * u
+    scalar2 = point * u
+    replic = ones(r, 1) * scalar2
+    diff = scalar1 - replic
+    diff_indicator = convert.(Int, diff .> 0)
+    return minimum(mean(diff_indicator, dims=1))
+end
+
+function depths(S₁, S₂)
+    sample = vcat(S₁, S₂)
+    n, p = size(sample)
+    Z₁ = zeros(n)
+    Z₂ = zeros(n)
+    for i in 1:n
+        point = reshape(sample[i, :], (1, p))
+        Z₁[i] = tukey(point, S₁)
+        Z₂[i] = tukey(point, S₂)
+    end
+    return Z₁, Z₂
+end

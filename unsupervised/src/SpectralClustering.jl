@@ -1,4 +1,4 @@
-function laplacian_matrix(data, dist; m=5, arg=nothing, norm=true)
+function laplacian_matrix(data, dist; m=5, arg=nothing)
     n, p = size(data)
     dists = zeros(n, n)
     adj_matrix = zeros(n, n)

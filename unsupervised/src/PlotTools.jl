@@ -1,7 +1,9 @@
 using Pkg
 # Pkg.add("Plots")
 # Pkg.add("LaTeXStrings")
+# Pkg.add("GLM")
 
+using GLM
 using LaTeXStrings
 using Plots
 
@@ -45,7 +47,7 @@ function plotPL(x, y,
                 titlefont = (fontsize, font),
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize
             )
         else
@@ -60,7 +62,7 @@ function plotPL(x, y,
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
                 ztickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize,
                 st = st
             )
@@ -77,7 +79,7 @@ function plotPL(x, y,
                 titlefont = (fontsize, font),
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize
             )
         else
@@ -92,7 +94,7 @@ function plotPL(x, y,
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
                 ztickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize,
                 st = st
             )
@@ -139,7 +141,7 @@ function scatterPL(x, y,
                 titlefont = (fontsize, font),
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize,
                 markersize = markersize,
                 markershape = markershape,
@@ -161,7 +163,7 @@ function scatterPL(x, y,
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
                 ztickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize,
                 markersize = markersize,
                 markershape = markershape,
@@ -183,7 +185,7 @@ function scatterPL(x, y,
                 titlefont = (fontsize, font),
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize,
                 markersize = markersize,
                 markershape = markershape,
@@ -205,7 +207,7 @@ function scatterPL(x, y,
                 xtickfont = (fontsize, font),
                 ytickfont = (fontsize, font),
                 ztickfont = (fontsize, font),
-                guidefont = (fontsize, font),
+                # guidefont = (fontsize, font),
                 legendfontsize = fontsize,
                 markersize = markersize,
                 markershape = markershape,
@@ -319,4 +321,11 @@ function generate_density_gif(aux, evals, out_file; arg=1, fps=1, dir="")
         outfile = joinpath(pwd(), "figs", dir,"dims"*string(dims)*"_"*out_file)
         gif(anim, outfile, fps=fps)
     end
+end
+
+# Plots the multivariate D-D Plot for the given depths
+function ddplot(Z₁, Z₂, filename; dir="")
+    fig = scatterPL(Z₁, Z₂, xlabel=L"Z_1", ylabel=L"Z_2", color=:black)
+    save(fig, filename, dir=dir)
+    return fig
 end

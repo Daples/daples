@@ -64,3 +64,28 @@ function subtractive_cluster(data, dist, rₐ;
     U, _ = find_membership(data, dist, protos, arg)
     return data, protos, U, evals
 end
+
+# Explore space - Subtractive
+function explore_subtractive(data, dist, rₐs; dataset="country", newfile=true)
+    s = joinpath(pwd(), "results")
+    if ~isdir(s)
+        mkdir(s)
+    end
+    nrₐ = size(rₐs, 1)
+    mode = newfile ? "w" : "a"
+    outfile = open(joinpath(s, dataset*"_subtractive.res"), mode)
+    ks = zeros(nrₐ)
+    for i in 1:nrₐ
+        rₐ = rₐs[i]
+        protos = subtractive_cluster(data, dist, rₐ)[2]
+        k = size(protos, 1)
+        ks[i] = k
+        if i == nrₐ
+            write(outfile, string(k))
+        else
+            write(outfile, string(k)*",")
+        end
+    end
+    close(outfile)
+    return ks
+end

@@ -82,6 +82,39 @@ function mountain_cluster(data, dist, n_grid, σ, β;
     return data, protos, U, grid, aux, evals
 end
 
+# Explore space - Mountain
+function explore_mountain(data, dist, n_grid, σs, βs, γ=0.4;
+    dataset="country", newfile=true
+)
+    s = joinpath(pwd(), "results")
+    if ~isdir(s)
+        mkdir(s)
+    end
+    nβ = size(βs, 1)
+    nσ = size(σs, 1)
+    mode = newfile ? "w" : "a"
+    outfile = open(joinpath(s, dataset*"_mountain.res"), mode)
+    write(outfile, "gamma = "*string(γ)*"\n")
+    ks = zeros(nσ, nβ)
+    for i in 1:nσ
+        σ = σs[i]
+        for j in 1:nβ
+            β = βs[j]
+            protos = mountain_cluster(data, dist, n_grid, σ, β, γ=γ)[2]
+            k = size(protos, 1)
+            ks[i, j] = k
+            if j == nβ
+                write(outfile, string(k))
+            else
+                write(outfile, string(k)*",")
+            end
+        end
+        write(outfile, "\n")
+    end
+    close(outfile)
+    return ks
+end
+
 ###############################
 function mountain_cluster_deprecated(data, dist, n_grid, σ, β;
     n_it = 10, γ=0.4, arg=nothing, norm=true
