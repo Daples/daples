@@ -255,7 +255,9 @@ function plot_k_clusters(protos, U, data, out_file; dir="", protos_iter=nothing)
 end
 
 # Plot 3D scatter of clusters and their centers
-function plot_3DClusters(protos, U, sample_data, out_file, labels; dir="")
+function plot_3DClusters(protos, U, data, out_file, labels; dir="",
+    plot_protos = true
+)
     k = size(protos, 1)
     for j in 1:k
         aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
@@ -270,12 +272,14 @@ function plot_3DClusters(protos, U, sample_data, out_file, labels; dir="")
             )
         end
     end
-    scatterPL(protos[:, 1], protos[:, 2], fig,
-        z=protos[:, 3], color=:black, markersize=5,
-        xlabel=labels[1],
-        ylabel=labels[2],
-        zlabel=labels[3]
-    )
+    if plot_protos
+        scatterPL(protos[:, 1], protos[:, 2], fig,
+            z=protos[:, 3], color=:black, markersize=5,
+            xlabel=labels[1],
+            ylabel=labels[2],
+            zlabel=labels[3]
+        )
+    end
     save(fig, out_file, dir=dir)
     return fig
 end
@@ -325,7 +329,20 @@ end
 
 # Plots the multivariate D-D Plot for the given depths
 function ddplot(Z₁, Z₂, filename; dir="")
-    fig = scatterPL(Z₁, Z₂, xlabel=L"Z_1", ylabel=L"Z_2", color=:black)
+    # Linear regression
+    res = lm(reshape(Z₁, (size(Z₁, 1), 1)), Z₂)
+    β₁ = coef(res)[1]
+    β₀ = mean(Z₂) - β₁*mean(Z₁)
+    maxZ = maximum(Z₁)
+    xZ = 0:0.01:maxZ
+    yZ = β₀ .+ β₁*xZ
+    println("beta0 = ", β₀)
+    println("beta1 = ", β₁)
+    # Depths scatter
+    fig = scatterPL(Z₁, Z₂, color=:black, label="Depths")
+    plotPL(xZ, yZ, fig, color=:red, label=L"Z_2=\beta_0+\beta_1 Z_1",
+        legend=:bottomright, xlabel=L"Z_1", ylabel=L"Z_2"
+    )
     save(fig, filename, dir=dir)
     return fig
 end

@@ -123,12 +123,18 @@ function remove_collinear(data; γ=0.85)
     indexes = collect(1:p)
     rms = []
     new_data = data
+    og_R = nothing
     R = nothing
+    k = 1
     while true
         Σ = cov(new_data)
-        d1 = diag(Σ);
-        d2 = diag(inv(Σ));
-        R =  1 .- 1 ./ (d1.*d2);
+        d1 = diag(Σ)
+        d2 = diag(inv(Σ))
+        R =  1 .- 1 ./ (d1.*d2)
+        if k == 1
+            og_R = R
+        end
+        k += 1
         M, ind_max = findmax(R)
         if M <= γ
             break
@@ -136,7 +142,7 @@ function remove_collinear(data; γ=0.85)
         append!(rms, splice!(indexes, indexes[ind_max]))
         new_data = data[:, indexes]
     end
-    return new_data, rms, R
+    return new_data, rms, R, og_R
 end
 
 function screes(data; corr=false)
