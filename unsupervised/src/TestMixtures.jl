@@ -62,3 +62,6 @@ data, protos, U, grid, aux, evals = mountain_cluster(data, dist,
     25, 0.1, 0.2, arg=arg
 )
 generate_density_gif(aux, evals, "GIF_density_MvNMixture.gif", dir=dir)
+
+# Test spectral with simple circle-based data (plots in same folder)
+test_spectral()
