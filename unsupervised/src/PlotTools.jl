@@ -122,7 +122,7 @@ function scatterPL(x, y,
     zlabel = "",
     st = :surface,
     cam = (-30, 30),
-    markersize = 3,
+    markersize = 4,
     markershape = :circle,
     markerstrokewidth = 0,
     markersizewidth = 0,
@@ -174,7 +174,7 @@ function scatterPL(x, y,
             )
         end
     else
-        if isnothing(z)
+        if ~isnothing(z)
             scatter!(add, x, y, z,
                 label = label,
                 color = color,
@@ -254,11 +254,28 @@ function plot_k_clusters(protos, U, data, out_file; dir="", protos_iter=nothing)
     return fig
 end
 
+# Plot 2D clustered data.
+function plot_clustered_data(k, U, data, out_file; dir="")
+    for j in 1:k
+        aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
+        data_cluster = data[[x[2] for x in aux], :]
+        if j == 1
+            global fig = scatterPL(data_cluster[:, 1], data_cluster[:, 2])
+        else
+            scatterPL(data_cluster[:, 1], data_cluster[:, 2], fig)
+        end
+    end
+    save(fig, out_file, dir=dir)
+    return fig
+end
+
 # Plot 3D scatter of clusters and their centers
 function plot_3DClusters(protos, U, data, out_file, labels; dir="",
-    plot_protos = true
+    plot_protos = true, k = nothing
 )
-    k = size(protos, 1)
+    if isnothing(k)
+        k = size(protos, 1)
+    end
     for j in 1:k
         aux = argmax(U, dims=1)[[x[1] for x in argmax(U, dims=1)] .== j]
         data_cluster = data[[x[2] for x in aux], :]
@@ -328,7 +345,7 @@ function generate_density_gif(aux, evals, out_file; arg=1, fps=1, dir="")
 end
 
 # Plots the multivariate D-D Plot for the given depths
-function ddplot(Z₁, Z₂, filename; dir="")
+function ddplot(Z₁, Z₂, filename; dir="", legend=:bottomright)
     # Linear regression
     res = lm(reshape(Z₁, (size(Z₁, 1), 1)), Z₂)
     β₁ = coef(res)[1]
@@ -341,7 +358,7 @@ function ddplot(Z₁, Z₂, filename; dir="")
     # Depths scatter
     fig = scatterPL(Z₁, Z₂, color=:black, label="Depths")
     plotPL(xZ, yZ, fig, color=:red, label=L"Z_2=\beta_0+\beta_1 Z_1",
-        legend=:bottomright, xlabel=L"Z_1", ylabel=L"Z_2"
+        legend=legend, xlabel=L"Z_1", ylabel=L"Z_2"
     )
     save(fig, filename, dir=dir)
     return fig
