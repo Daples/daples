@@ -1,7 +1,7 @@
 using Pkg
-# Pkg.add("Distributions")
-# Pkg.add("LinearAlgebra")
-# Pkg.add("TSne")
+Pkg.add("Distributions")
+Pkg.add("LinearAlgebra")
+Pkg.add("TSne")
 
 using Distributions
 using LinearAlgebra
@@ -105,6 +105,7 @@ function read_countries(country_file)
     return aux, countries, header
 end
 
+# Print 2D matrix
 function print_2Dmatrix(mat)
     m, n = size(mat)
     print("[\n")
@@ -118,6 +119,7 @@ function print_2Dmatrix(mat)
 end
 
 ## Data Analysis
+# Removes collinear dimensions and returns new data
 function remove_collinear(data; γ=0.85)
     n, p = size(data)
     indexes = collect(1:p)
@@ -145,11 +147,13 @@ function remove_collinear(data; γ=0.85)
     return new_data, rms, R, og_R
 end
 
+# Calculate the screes (sorted eigenvalues) of data
 function screes(data; corr=false)
     Σ = ~corr ? cov(data) : cor(data)
     return collect(1:size(data, 2)), sort(eigvals(Σ), rev=true)
 end
 
+# Estimates Tukey's statistical depth
 function tukey(point, data; n=500)
     r, c = size(data)
     u = rand(Normal(0, 1), (c, n))
@@ -161,6 +165,7 @@ function tukey(point, data; n=500)
     return minimum(mean(diff_indicator, dims=1))
 end
 
+# Calculates the crossed statistical depths between two samples
 function depths(S₁, S₂)
     sample = vcat(S₁, S₂)
     n, p = size(sample)

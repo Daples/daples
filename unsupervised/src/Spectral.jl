@@ -1,6 +1,11 @@
 include("K-Means.jl")
 include("PlotTools.jl")
 
+# Graph Laplacian
+#   data -> (n, p) dataset matrix
+#   dist -> Similarity function
+#   m -> Minimum number of nearest neighbors
+#   arg -> Additional parameter for similarity function
 function laplacian_matrix(data, dist; m=6, arg=nothing)
     n, p = size(data)
     dists = zeros(n, n)
@@ -22,7 +27,13 @@ function laplacian_matrix(data, dist; m=6, arg=nothing)
     return L
 end
 
-function spectral_cluster(data, k, dist; arg=nothing, m=6)
+# Algorithm
+#   data -> (n, p) dataset matrix
+#   k -> Number of clusters
+#   dist -> Similarity function
+#   m -> Minimum number of nearest neighbors
+#   arg -> Additional parameter for similarity function
+function spectral_cluster(data, k, dist; m=6, arg=nothing)
     L = laplacian_matrix(data, dist, arg=arg, m=m)
     eigvals, eigvecs = eigen(L)
     eigvecs = eigvecs[:, sortperm(eigvals)]
@@ -31,6 +42,7 @@ function spectral_cluster(data, k, dist; arg=nothing, m=6)
     return U
 end
 
+# Test spectral clustering with circular data
 function test_spectral()
     r1 = 5
     r2 = 1

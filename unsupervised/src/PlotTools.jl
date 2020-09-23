@@ -1,7 +1,7 @@
 using Pkg
-# Pkg.add("Plots")
-# Pkg.add("LaTeXStrings")
-# Pkg.add("GLM")
+Pkg.add("GLM")
+Pkg.add("LaTeXStrings")
+Pkg.add("Plots"
 
 using GLM
 using LaTeXStrings
@@ -344,7 +344,7 @@ function generate_density_gif(aux, evals, out_file; arg=1, fps=1, dir="")
     end
 end
 
-# Plots the multivariate D-D Plot for the given depths
+# Plots the multivariate D-D Plot for the given depths with fitted LM
 function ddplot(Z₁, Z₂, filename; dir="", legend=:bottomright)
     # Linear regression
     res = lm(reshape(Z₁, (size(Z₁, 1), 1)), Z₂)

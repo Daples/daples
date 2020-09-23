@@ -43,26 +43,23 @@ function homogeneity(data, part, filename; legend=:bottomright)
     return Z₁, Z₂, fig
 end
 
-res = homogeneity(data, 84, "og")
-
 # Multicollinearity
 cΣ = cond(Σ);
 println(h, "Condition number of Covariance Matrix: ", cΣ);
-
 new_data, rms, R, og_R = remove_collinear(data)
-new_Σ = cov(new_data)
-new_cΣ = cond(new_Σ)
 
+# Homogeneity
+res = homogeneity(data, 84, "og")
 res = homogeneity(new_data, 84, "new_dims")
 
-## Unsupervised Learning
-
+## # Unsupervised Learning
 # Normalize data
 norm_data = normalize(data)
 
 # Dimension Reduction
 red_data = normalize(tsne(data, 3))
 
+## Explore space
 # Apply Mountain and Subtractive to explore the space with some parameters
 function explore_space(data, dataset, dir; n_grid=5)
     # Explore space by Mountain clustering
@@ -122,6 +119,7 @@ function clusterize(data, k, dataset, dir)
     plot_3DClusters(nothing, U_spec, emb_data, "Spec_"*dataset*".pdf",
         ("", "", ""), dir=dir, plot_protos = false, k = 3
     )
+    return [protos_KM, protos_FCM], [U_KM, U_FCM]
 end
 
 # Improve clustering

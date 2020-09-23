@@ -1,8 +1,12 @@
+using Pkg
+
+Pkg.add("StatsBase")
 using StatsBase
+
 include("Tools.jl");
 
 # Cost Function
-#   U -> (k, n) fuzzy membership matrix
+#   U -> (k, n) membership matrix
 #   dists -> (k, n) Distance matrix
 function cost_fun(U, dists)
     return sum(U .* dists)
