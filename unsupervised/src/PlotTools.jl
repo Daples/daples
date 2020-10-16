@@ -1,7 +1,7 @@
 using Pkg
 Pkg.add("GLM")
 Pkg.add("LaTeXStrings")
-Pkg.add("Plots"
+Pkg.add("Plots")
 
 using GLM
 using LaTeXStrings
