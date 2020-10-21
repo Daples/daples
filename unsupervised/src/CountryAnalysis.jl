@@ -13,7 +13,7 @@ data, countries, header = read_countries("data/country-data.csv");
 ## Statistical Analysis (over original data)
 dig = 2
 dir = "Data-Analysis"
-h = "#############################################################\n"
+
 # Mean Vector
 μ = mean(data, dims = 1)
 println(h, "Mean Vector:\n", round.(μ; digits=dig))
