@@ -104,3 +104,46 @@ function plotPL(x, y,
         return add
     end
 end
+
+# Plot ξav (average error energy)
+function plot_ξav(Ξ; save=false, out_file="", dir="")
+    s = size(Ξ, 2)
+    fig = plotPL(collect(1:s), reshape(mean(Ξ, dims=1), s),
+        xlabel = "Epoch",
+        ylabel = L"\xi_{av}"
+    )
+    save ? savefig(fig, out_file, dir=dir) : nothing
+    return fig
+end
+
+function plot_∇p(∇s, p; save=false, out_file="", dir="")
+    s = size(∇s, 1)
+    nδ = size(∇s[1], 2)
+    data_∇p = zeros(s, nδ)
+    for h in 1:s
+        data_∇p[h, :] = ∇s[h][p, :]
+    end
+    first = true
+    fig = nothing
+    for i in 1:nδ
+        if first
+            fig = plotPL(collect(1:s), data_∇p[:, i],
+                xlabel="Epoch",
+                ylabel=L"\sum\delta_j",
+                color=:auto,
+                label="$i"
+            )
+            first = false
+        else
+            continue
+            plotPL(collect(1:s), data_∇p[:, i], fig,
+                xlabel="Epoch",
+                ylabel=L"\sum\delta_j",
+                color = :auto,
+                label="$i"
+            )
+        end
+    end
+    save ? savefig(fig, out_file, dir=dir) : nothing
+    return fig
+end
