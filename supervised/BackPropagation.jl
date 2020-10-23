@@ -1,16 +1,23 @@
 include("Tools.jl");
 
+function propagate(Ws, Vs, ϕ, hidden_layers)
+    aux = Vs[end]
+    for i in 1:(hidden_layers + 1)
+        push!(Vs, Ws[i] * aux)
+        aux = ϕ[i+1](Vs[end])
+    end
+    return ϕ[end](Vs[end])
+end
+
 function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
     # Dimensions
     N, m = size(X)
     n = size(Y, 2)
-
-    augL = [m, L..., n]
-
     hidden_layers = size(L, 1)
-    layers = size(augL, 1)
+    layers = size(L, 1) + 2
 
-    # Auxiliary Matrices
+    # Auxiliary Structures
+    augL = [m, L..., n]
     Y_nn = zeros(size(Y))
     Ξ = zeros(N, s) # error energies per epoch
     ∇ = zeros(N, hidden_layers + 1) # sum of gradients per layer for each pattern
@@ -22,6 +29,7 @@ function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
         push!(Ws, init_weights(augL[l+1], augL[l], seed=seed))
     end
 
+    # BackPropagation
     Vs = nothing
     E = nothing
     ΔW = nothing
@@ -36,12 +44,7 @@ function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
             y = reshape(Y[p, :], (n, 1))
 
             # Propagate
-            aux = Vs[end]
-            for i in 1:(hidden_layers + 1)
-                push!(Vs, Ws[i] * aux)
-                aux = ϕ[i+1](Vs[end])
-            end
-            y_nn = ϕ[end](Vs[end])
+            y_nn = propagate(Ws, Vs, ϕ, hidden_layers)
             Y_nn[p, :] = y_nn
             E[p, :] = y - y_nn
 
@@ -64,16 +67,21 @@ function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
         Ξ[:, h] = sum(0.5 * E.^2, dims=2)
         push!(∇s, ∇)
     end
-    return ΔW
+    return sum(Ξ, dims=1)
 end
 
 # XOR
 X = [0 0; 0 1; 1 0; 1 1];
 Y = [0; 1; 1; 0];
+
+# OR
+X = [0 0; 0 1; 1 0; 1 1];
+Y = [0; 1; 1; 1];
+
 L = [3, 4, 2];
 ϕ_sigm(x) = 1.0 ./ (1.0 .+ exp.(-x));
 ∂ϕ_sigm(x) = ϕ_sigm(x).*(1 .- ϕ_sigm(x));
 
 ϕ = [ϕ_sigm for i in 1:size(L, 1)+2]
 ∂ϕ = [∂ϕ_sigm for i in 1:size(L, 1)+2]
-a = nn(X, Y, L, ϕ, ∂ϕ)
+of = nn(X, Y, L, ϕ, ∂ϕ, s=1000, η=0.1)
