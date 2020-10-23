@@ -6,7 +6,7 @@ function normalize(data)
 end
 
 # Initialize a nxm matrix with [-1,1] uniformly distributed random numbers.
-function init_weights(n, m; seed = nothing)
+function init_weights(n, m; seed=nothing)
     isnothing(seed) ? nothing : Random.seed!(seed)
     return rand(Uniform(-1, 1), (n, m))
 end

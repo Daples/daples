@@ -9,7 +9,7 @@ function propagate(Ws, Vs, ϕ, hidden_layers)
     return ϕ[end](Vs[end])
 end
 
-function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
+function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, s=10, seed=nothing)
     # Dimensions
     N, m = size(X)
     n = size(Y, 2)
@@ -40,8 +40,8 @@ function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
             Vs = []
             δs = []
             x = reshape(X[p, :], (m, 1))
-            push!(Vs, ϕ[1](x))
             y = reshape(Y[p, :], (n, 1))
+            push!(Vs, ϕ[1](x))
 
             # Propagate
             y_nn = propagate(Ws, Vs, ϕ, hidden_layers)
