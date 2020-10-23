@@ -67,21 +67,5 @@ function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
         Ξ[:, h] = sum(0.5 * E.^2, dims=2)
         push!(∇s, ∇)
     end
-    return sum(Ξ, dims=1)
+    return ∇s, Ws, Ξ
 end
-
-# XOR
-X = [0 0; 0 1; 1 0; 1 1];
-Y = [0; 1; 1; 0];
-
-# OR
-X = [0 0; 0 1; 1 0; 1 1];
-Y = [0; 1; 1; 1];
-
-L = [3, 4, 2];
-ϕ_sigm(x) = 1.0 ./ (1.0 .+ exp.(-x));
-∂ϕ_sigm(x) = ϕ_sigm(x).*(1 .- ϕ_sigm(x));
-
-ϕ = [ϕ_sigm for i in 1:size(L, 1)+2]
-∂ϕ = [∂ϕ_sigm for i in 1:size(L, 1)+2]
-of = nn(X, Y, L, ϕ, ∂ϕ, s=1000, η=0.1)
