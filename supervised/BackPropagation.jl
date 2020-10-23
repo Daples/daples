@@ -67,5 +67,5 @@ function nn(X, Y, L, ϕ, ∂ϕ; η = 0.05, s = 10, seed = nothing)
         Ξ[:, h] = sum(0.5 * E.^2, dims=2)
         push!(∇s, ∇)
     end
-    return ∇s, Ws, Ξ
+    return ∇s, Ws, Vs, Ξ
 end
