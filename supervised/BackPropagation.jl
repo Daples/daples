@@ -26,8 +26,7 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
     augL = [m - 1, L..., n]
     Y_nn = zeros(size(Y))
     Ξ = zeros(N, s) # error energies per epoch
-    ∇ = zeros(N, hidden_layers + 1) # sum of gradients per layer for each pattern
-    ∇s = []
+    ∇s = zeros(s, hidden_layers + 1) # sum of gradients at the end of each epoch
     Ws = []
     ΔWs = []
 
@@ -45,6 +44,7 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
     Φs = nothing
     for h in 1:s
         E = zeros(size(Y)) # errors in one epoch
+        ∇ = zeros(hidden_layers + 1)
         for p in 1:N
             δs = []
             x = reshape(X[p, :], (m - 1, 1))
@@ -67,15 +67,14 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
                     δ = ∂ϕ[i](Vs[i]) .* (Ws[i][:, 1:end-1]' * δs[1])
                 end
                 pushfirst!(δs, δ)
-                ∇[p, i-1] = sum(δ)
+                ∇[i-1] = sum(δ)
                 ΔW = -η * δ * Φs[i-1]' + α * ΔWs[i-1]
                 Ws[i-1] += ΔW
                 ΔWs[i-1] = ΔW
             end
-            print(Ws[end], "\n")
         end
         Ξ[:, h] = sum(0.5 * E.^2, dims=2)
-        push!(∇s, ∇)
+        ∇s[h, :] = ∇
     end
     return Vs, Φs, Ws, ∇s, Ξ
 end
