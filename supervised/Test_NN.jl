@@ -20,17 +20,21 @@ L = [3, 2];
 ∂ϕ = [∂ϕ_sigm for i in 1:size(L, 1)+2]
 
 # NN
-s = 100
-η = 0.9
+s = 50
+η = 0.75
 α = 0
 Vs, Φs, Ws, ∇s, Ξ = nn(X, Y, L, ϕ, ∂ϕ, s=s, η=η, α=α)
 
 # Plot Average Error
-# plot_ξav(Ξ)
+plot_ξav(Ξ)
 
 # Plot Gradient
-# fig = plot_∇p(∇s, 2)
-# plot!(fig, ylim=(-0.1, 0.1))
+plot_∇s(∇s)
+
+# Plot gradient's evolution in layer l for different seeds
+S = rand(1:1000, 10)
+l = 1
+plot_seed∇(l, S, X, Y, L, ϕ, ∂ϕ, s=s, η=η, α=α)
 
 # NN output
 # for i in 1:size(X, 1)
