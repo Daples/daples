@@ -5,6 +5,8 @@
 using LaTeXStrings
 using Plots
 
+include("BackPropagation.jl")
+
 # Standardize file saving
 function save(fig, out_file; dir="")
     if ~isdir(joinpath(pwd(), "figs"))
@@ -116,18 +118,13 @@ function plot_ξav(Ξ; save=false, out_file="", dir="")
     return fig
 end
 
-function plot_∇p(∇s, p; save=false, out_file="", dir="")
-    s = size(∇s, 1)
-    nδ = size(∇s[1], 2)
-    data_∇p = zeros(s, nδ)
-    for h in 1:s
-        data_∇p[h, :] = ∇s[h][p, :]
-    end
+function plot_∇s(∇s; save=false, out_file="", dir="")
+    s, nδ = size(∇s)
     first = true
     fig = nothing
     for i in 1:nδ
         if first
-            fig = plotPL(collect(1:s), data_∇p[:, i],
+            fig = plotPL(collect(1:s), ∇s[:, i],
                 xlabel="Epoch",
                 ylabel=L"\sum\delta_j",
                 color=:auto,
@@ -135,12 +132,42 @@ function plot_∇p(∇s, p; save=false, out_file="", dir="")
             )
             first = false
         else
-            continue
-            plotPL(collect(1:s), data_∇p[:, i], fig,
+            plotPL(collect(1:s), ∇s[:, i], fig,
                 xlabel="Epoch",
                 ylabel=L"\sum\delta_j",
                 color = :auto,
                 label="$i"
+            )
+        end
+    end
+    save ? savefig(fig, out_file, dir=dir) : nothing
+    return fig
+end
+
+function plot_seed∇(l, S, X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10,
+    save=false, out_file="", dir=""
+)
+    seeds = size(S, 1)
+    arr∇ = []
+    for seed in S
+        _, _, _, ∇s, _ = nn(X, Y, L, ϕ, ∂ϕ; η=η, α=α, s=s, seed=seed)
+        push!(arr∇, ∇s)
+    end
+    first = true
+    fig = nothing
+    for i in 1:seeds
+        if first
+            fig = plotPL(collect(1:s), arr∇[i][:, l],
+                xlabel="Epoch",
+                ylabel=L"\sum\delta_j",
+                color=:auto,
+            )
+            first = false
+        else
+            plotPL(collect(1:s), arr∇[i][:, l], fig,
+                xlabel="Epoch",
+                ylabel=L"\sum\delta_j",
+                color = :auto,
             )
         end
     end
