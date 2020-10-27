@@ -4,7 +4,7 @@ function propagate(x, Ws, ϕ, hidden_layers)
     Vs = []
     Φs = []
     push!(Vs, x)
-    push!(Φs, vcat(ϕ[1](x), [1]))
+    push!(Φs, vcat(x, [1]))
     aux = Φs[end]
     for i in 1:(hidden_layers + 1)
         v = Ws[i] * aux
