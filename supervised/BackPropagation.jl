@@ -1,3 +1,4 @@
+using Random
 include("Tools.jl");
 
 function propagate(x, Ws, ϕ, hidden_layers)
@@ -7,7 +8,7 @@ function propagate(x, Ws, ϕ, hidden_layers)
     push!(Φs, vcat(x, [1]))
     aux = Φs[end]
     for i in 1:(hidden_layers + 1)
-        v = Ws[i] * aux
+        v = Ws[i]' * aux
         push!(Vs, v)
         aux = i == hidden_layers + 1 ? ϕ[i+1](v) : vcat(ϕ[i+1](v), [1])
         push!(Φs, aux)
@@ -16,6 +17,7 @@ function propagate(x, Ws, ϕ, hidden_layers)
 end
 
 function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
+    isnothing(seed) ? nothing : Random.seed!(seed)
     # Dimensions
     m = size(X, 2) + 1
     N, n = size(Y)
@@ -24,7 +26,6 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
 
     # Auxiliary Structures
     augL = [m - 1, L..., n]
-    Y_nn = zeros(size(Y))
     Ξ = zeros(N, s) # error energies per epoch
     ∇s = zeros(s, hidden_layers + 1) # sum of gradients at the end of each epoch
     Ws = []
@@ -32,8 +33,8 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
 
     # Fill weights
     for l in 1:(layers - 1)
-        push!(Ws, init_weights(augL[l+1], augL[l] + 1, seed=seed))
-        push!(ΔWs, zeros(augL[l+1], augL[l] + 1))
+        push!(Ws, init_weights(augL[l] + 1, augL[l+1]))
+        push!(ΔWs, zeros(augL[l] + 1, augL[l+1]))
     end
 
     # Optimization
@@ -53,7 +54,6 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
             # Propagate
             Vs, Φs = propagate(x, Ws, ϕ, hidden_layers)
             y_nn = Φs[end]
-            Y_nn[p, :] = y_nn
             E[p, :] = y - y_nn
 
             # Backpropagate
@@ -61,16 +61,19 @@ function nn(X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10, seed=nothing)
             for i in layers:-1:2
                 e = reshape(E[p, :], (n, 1))
                 if aux
-                    δ = e .* ∂ϕ[i](Vs[i])
+                    δ = ∂ϕ[i](Vs[i]) .* e
                     aux = false
                 else
-                    δ = ∂ϕ[i](Vs[i]) .* (Ws[i][:, 1:end-1]' * δs[1])
+                    δ = (Ws[i][1:(end-1), :] * δs[1]) .* ∂ϕ[i](Vs[i])
                 end
                 pushfirst!(δs, δ)
                 ∇[i-1] = sum(δ)
-                ΔW = -η * δ * Φs[i-1]' + α * ΔWs[i-1]
-                Ws[i-1] += ΔW
-                ΔWs[i-1] = ΔW
+            end
+            # Gradient descent
+            for i in 1:size(Ws, 1)
+                ΔW = -η * Φs[i] * δs[i]' + α * ΔWs[i]
+                Ws[i] += ΔW
+                ΔWs[i] = ΔW
             end
         end
         Ξ[:, h] = sum(0.5 * E.^2, dims=2)
