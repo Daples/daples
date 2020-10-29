@@ -26,7 +26,7 @@ s = 2000
 Vs, Φs, Ws, ∇s, Ξ = nn(X, Y, L, ϕ, ∂ϕ, s=s, η=η, α=α, seed=1234)
 
 # Plot Average Error
-# plot_ξav(Ξ)
+plot_ξav(Ξ)
 
 # Plot Gradient
 plot_∇s(∇s)

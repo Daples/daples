@@ -108,17 +108,17 @@ function plotPL(x, y,
 end
 
 # Plot ξav (average error energy)
-function plot_ξav(Ξ; save=false, out_file="", dir="")
+function plot_ξav(Ξ; save_fig=false, out_file="", dir="")
     s = size(Ξ, 2)
     fig = plotPL(collect(1:s), reshape(mean(Ξ, dims=1), s),
         xlabel = "Epoch",
         ylabel = L"\xi_{av}"
     )
-    save ? savefig(fig, out_file, dir=dir) : nothing
+    save_fig ? save(fig, out_file, dir=dir) : nothing
     return fig
 end
 
-function plot_∇s(∇s; save=false, out_file="", dir="")
+function plot_∇s(∇s; save_fig=false, out_file="", dir="")
     s, nδ = size(∇s)
     first = true
     fig = nothing
@@ -136,17 +136,17 @@ function plot_∇s(∇s; save=false, out_file="", dir="")
                 xlabel="Epoch",
                 ylabel=L"\sum\delta_j",
                 color = :auto,
-                label="$i"
+                label="Layer $i"
             )
         end
     end
-    plot!(legend = :topright)
-    save ? savefig(fig, out_file, dir=dir) : nothing
+    plot!(legend = :bottomleft)
+    save_fig ? save(fig, out_file, dir=dir) : nothing
     return fig
 end
 
 function plot_seed∇(l, S, X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10,
-    save=false, out_file="", dir=""
+    save_fig=false, out_file="", dir=""
 )
     seeds = size(S, 1)
     arr∇ = []
@@ -172,6 +172,6 @@ function plot_seed∇(l, S, X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10,
             )
         end
     end
-    save ? savefig(fig, out_file, dir=dir) : nothing
+    save_fig ? save(fig, out_file, dir=dir) : nothing
     return fig
 end
