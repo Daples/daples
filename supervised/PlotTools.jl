@@ -128,7 +128,7 @@ function plot_∇s(∇s; save=false, out_file="", dir="")
                 xlabel="Epoch",
                 ylabel=L"\sum\delta_j",
                 color=:auto,
-                label="$i"
+                label="Layer $i"
             )
             first = false
         else
@@ -140,6 +140,7 @@ function plot_∇s(∇s; save=false, out_file="", dir="")
             )
         end
     end
+    plot!(legend = :topright)
     save ? savefig(fig, out_file, dir=dir) : nothing
     return fig
 end
