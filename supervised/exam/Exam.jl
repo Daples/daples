@@ -70,10 +70,10 @@ for i in 1:length(validation)
 end
 
 # NN vs. Real
-fig = plotPL(0:1/(length(training)-1):1, training_Y[:, 1], color=:auto, label="Real")
-fig = plotPL(0:1/(length(training)-1):1, Y_nn[:, 1], fig, color=:auto, label="NN-Training")
-fig = plotPL(0:1/(length(test)-1):1, Y_nn_test[:, 1], fig, color=:auto, label="NN-Test")
-fig = plotPL(0:1/(length(validation)-1):1, Y_nn_valid[:, 1], fig, color=:auto, label="NN-Validation")
+fig = scatterPL(0:1/(length(training)-1):1, training_Y[:, 1], color=:auto, label="Real", markersize = 2);
+fig = scatterPL(0:1/(length(training)-1):1, Y_nn[:, 1], fig, color=:auto, label="NN-Training", markersize = 2);
+fig = scatterPL(0:1/(length(test)-1):1, Y_nn_test[:, 1], fig, color=:auto, label="NN-Test", markersize = 2);
+fig = scatterPL(0:1/(length(validation)-1):1, Y_nn_valid[:, 1], fig, color=:auto, label="NN-Validation", markersize = 2)
 save(fig, "output.pdf", dir="eta_$η")
 
 ## Second Eta
@@ -81,7 +81,7 @@ save(fig, "output.pdf", dir="eta_$η")
 Vs, Φs, Ws, ∇s, Ξ = nn(training_X, training_Y, L, ϕ, ∂ϕ; η=η, α=0, s=50);
 
 # Average Error
-plot_ξav(Ξ, save_fig=true, out_file="Eav.pdf", dir="eta_$η")
+plot_ξav(Ξ[:, 1:6], save_fig=true, out_file="Eav.pdf", dir="eta_$η")
 
 # Plot Gradients
 plot_∇s(∇s, save_fig=true, out_file="grads.pdf", dir="eta_$η")
@@ -103,7 +103,7 @@ for i in 1:length(validation)
 end
 
 # NN vs. Real
-fig = plotPL(0:1/(length(training)-1):1, training_Y[:, 1], color=:auto, label="Real")
+fig = scatterPL(0:1/(length(training)-1):1, training_Y[:, 1], color=:auto, label="Real")
 fig = plotPL(0:1/(length(training)-1):1, Y_nn[:, 1], fig, color=:auto, label="NN-Training")
 fig = plotPL(0:1/(length(test)-1):1, Y_nn_test[:, 1], fig, color=:auto, label="NN-Test")
 fig = plotPL(0:1/(length(validation)-1):1, Y_nn_valid[:, 1], fig, color=:auto, label="NN-Validation")
