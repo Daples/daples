@@ -175,3 +175,121 @@ function plot_seed∇(l, S, X, Y, L, ϕ, ∂ϕ; η=0.05, α=0.1, s=10,
     save_fig ? save(fig, out_file, dir=dir) : nothing
     return fig
 end
+
+# Standardize scatters
+function scatterPL(x, y,
+    add = nothing;
+    z = nothing,
+    label = "",
+    color = :auto,
+    lw = 2,
+    legend = :right,
+    fontsize = 12,
+    font = "times",
+    xlabel = "",
+    ylabel = "",
+    zlabel = "",
+    st = :surface,
+    cam = (-30, 30),
+    markersize = 4,
+    markershape = :circle,
+    markerstrokewidth = 0,
+    markersizewidth = 0,
+    markeralpha = 1,
+    markerstrokealpha = 0
+)
+    if isnothing(add)
+        if isnothing(z)
+            global fig = scatter(x, y,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                # guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
+            )
+        else
+            global fig = scatter(x, y, z,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                zlabel = zlabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                ztickfont = (fontsize, font),
+                # guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
+            )
+        end
+    else
+        if ~isnothing(z)
+            scatter!(add, x, y, z,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                # guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
+            )
+        else
+            scatter!(add, x, y,
+                label = label,
+                color = color,
+                lw = lw,
+                legend = legend,
+                xlabel = xlabel,
+                ylabel = ylabel,
+                zlabel = zlabel,
+                titlefont = (fontsize, font),
+                xtickfont = (fontsize, font),
+                ytickfont = (fontsize, font),
+                ztickfont = (fontsize, font),
+                # guidefont = (fontsize, font),
+                legendfontsize = fontsize,
+                markersize = markersize,
+                markershape = markershape,
+                markerstrokewidth = markerstrokewidth,
+                markersizewidth = markersizewidth,
+                markeralpha = 1,
+                markerstrokealpha = 0
+            )
+        end
+    end
+    if isnothing(add)
+        return fig
+    else
+        return add
+    end
+end
