@@ -1,1 +1,0 @@
-sudo pacman -S ttf-bitstream-vera ttf-croscore  ttf-dejavu ttf-droid gnu-free-fonts ttf-ibm-plex ttf-liberation ttf-linux-libertine noto-fonts ttf-anonymous-pro ttf-cascadia-code ttf-fira-mono ttf-fira-code ttf-inconsolata ttf-jetbrains-mono cantarell-fonts ttf-opensans adobe-source-sans-pro-fonts noto-fonts-emoji ttf-joypixels
